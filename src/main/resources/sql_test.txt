@@ -1,0 +1,14 @@
+SELECT d.device_id, dn.device_name_id, device_name, d.device_name_id, d.type, d.range, d.category, d.factory_number, d.last_inspection_date, d.next_inspection_date, d.inspection_frequency, d.inspection_place_id, ip.inspection_place, d.inspection_protocol_number, d.inspection_type_id, it.inspection_type, d.device_location_id, dl.device_location, d.regular_condition_id, rc.regular_condition, d.measurement_type_id, mt.measurement_type, d.responsible, d.history FROM devices d JOIN device_locations dl ON d.device_location_id = dl.device_location_id JOIN inspection_places ip ON d.inspection_place_id = ip.inspection_place_id JOIN inspection_types it ON d.inspection_type_id = it.inspection_type_id JOIN measurement_types mt ON d.measurement_type_id = mt.measurement_type_id JOIN regular_conditions rc ON d.regular_condition_id = rc.regular_condition_id JOIN device_names dn ON d.device_name_id = dn.device_name_id;
+
+
+SELECT d.device_id, dn.device_name_id, dn.device_name, d.device_name_id, d.type, d.range, d.category, d.factory_number, d.last_inspection_date, d.next_inspection_date, d.inspection_frequency, d.inspection_place_id, ip.inspection_place, d.inspection_protocol_number, d.inspection_type_id FROM devices d JOIN device_names dn ON d.device_name_id = dn.device_name_id JOIN inspection_places ip ON d.inspection_place_id = ip.inspection_place_id;
+
+
+SELECT d.device_id, dn.device_name_id, device_name, d.device_name_id, d.type, d.range, d.category, d.factory_number, d.last_inspection_date, d.next_inspection_date, d.inspection_frequency, d.inspection_place_id, ip.inspection_place, d.inspection_protocol_number, d.inspection_type_id, it.inspection_type, d.device_location_id, dl.device_location, d.regular_condition_id, rc.regular_condition, d.measurement_type_id, d.measurement_type_id, mt.measurement_type FROM devices d JOIN device_names dn ON d.device_name_id = dn.device_name_id JOIN inspection_places ip ON d.inspection_place_id = ip.inspection_place_id JOIN regular_conditions rc ON d.regular_condition_id = rc.regular_condition_id JOIN inspection_types it ON d.inspection_type_id = it.inspection_type_id JOIN device_locations dl ON d.device_location_id = dl.device_location_id JOIN measurement_types mt ON d.measurement_type_id = mt.measurement_type_id;
+
+SELECT d.device_id, d.measurement_type_id, mt.measurement_type FROM devices d JOIN measurement_types mt ON d.measurement_type_id = mt.measurement_type_id;
+
+
+
+
+
