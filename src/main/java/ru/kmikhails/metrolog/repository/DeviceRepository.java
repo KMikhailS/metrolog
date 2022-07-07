@@ -13,20 +13,20 @@ import java.util.List;
 import java.util.Optional;
 
 public class DeviceRepository  {
-    private static final String SAVE_QUERY = "INSERT INTO devices (device_name_id, type, range, category, factory_number, " +
+    private static final String SAVE_QUERY = "INSERT INTO devices (device_name_id, reg_number, type, range, category, factory_number, " +
             "last_inspection_date, next_inspection_date, inspection_frequency, inspection_place_id, " +
             "inspection_protocol_number, inspection_type_id, device_location_id, regular_condition_id, " +
             "measurement_type_id, responsible, history) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE devices SET device_name_id = ?, type = ?, range = ?, category = ?, " +
-            "factory_number = ?, last_inspection_date = ?, next_inspection_date = ?, inspection_frequency = ?, " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE devices SET device_name_id = ?, reg_number = ?, type = ?, range = ?, " +
+            "category = ?, factory_number = ?, last_inspection_date = ?, next_inspection_date = ?, inspection_frequency = ?, " +
             "inspection_place_id = ?, inspection_protocol_number = ?, inspection_type_id = ?, device_location_id = ?, " +
             "regular_condition_id = ?, measurement_type_id = ?, responsible = ?, history = ? WHERE device_id = ?";
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM devices WHERE device_id = ?";
     private static final String SELECT_DEVICE_QUERY = "SELECT d.device_id, dn.device_name_id, d.device_name_id, dn.device_name, " +
-            "d.type, d.range, d.category, d.factory_number, d.last_inspection_date, d.next_inspection_date, d.inspection_frequency, " +
-            "d.inspection_place_id, ip.inspection_place, d.inspection_protocol_number, d.inspection_type_id, " +
-            "it.inspection_type, d.device_location_id, dl.device_location, d.regular_condition_id, " +
+            "d.reg_number, d.type, d.range, d.category, d.factory_number, d.last_inspection_date, d.next_inspection_date, " +
+            "d.inspection_frequency, d.inspection_place_id, ip.inspection_place, d.inspection_protocol_number, " +
+            "d.inspection_type_id, it.inspection_type, d.device_location_id, dl.device_location, d.regular_condition_id, " +
             "rc.regular_condition, d.measurement_type_id, mt.measurement_type, d.responsible, " +
             "d.history " +
             "FROM devices d " +
@@ -72,7 +72,7 @@ public class DeviceRepository  {
              final PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)) {
 
             insert(statement, device);
-            statement.setLong(17, device.getId());
+            statement.setLong(18, device.getId());
             statement.executeUpdate();
 
         } catch (SQLException e) {
@@ -152,29 +152,30 @@ public class DeviceRepository  {
 
     private void insert(PreparedStatement statement, Device device) throws SQLException {
         statement.setLong(1, device.getName().getId());
-        statement.setString(2, device.getType());
-        statement.setString(3, device.getRange());
-        statement.setString(4, device.getCategory());
-        statement.setString(5, device.getFactoryNumber());
+        statement.setString(2, device.getRegNumber());
+        statement.setString(3, device.getType());
+        statement.setString(4, device.getRange());
+        statement.setString(5, device.getCategory());
+        statement.setString(6, device.getFactoryNumber());
         if (device.getLastInspectionDate() != null) {
-            statement.setString(6, device.getLastInspectionDate().toString());
-        } else {
-            statement.setString(6, null);
-        }
-        if (device.getNextInspectionDate() != null) {
-            statement.setString(7, device.getNextInspectionDate().toString());
+            statement.setString(7, device.getLastInspectionDate().toString());
         } else {
             statement.setString(7, null);
         }
-        statement.setInt(8, device.getInspectionFrequency());
-        statement.setLong(9, device.getInspectionPlace().getId());
-        statement.setString(10, device.getInspectionProtocolNumber());
-        statement.setLong(11, device.getInspectionType().getId());
-        statement.setLong(12, device.getDeviceLocation().getId());
-        statement.setLong(13, device.getRegularCondition().getId());
-        statement.setLong(14, device.getMeasurementType().getId());
-        statement.setString(15, device.getResponsible());
-        statement.setString(16, device.getHistory());
+        if (device.getNextInspectionDate() != null) {
+            statement.setString(8, device.getNextInspectionDate().toString());
+        } else {
+            statement.setString(8, null);
+        }
+        statement.setInt(9, device.getInspectionFrequency());
+        statement.setLong(10, device.getInspectionPlace().getId());
+        statement.setString(11, device.getInspectionProtocolNumber());
+        statement.setLong(12, device.getInspectionType().getId());
+        statement.setLong(13, device.getDeviceLocation().getId());
+        statement.setLong(14, device.getRegularCondition().getId());
+        statement.setLong(15, device.getMeasurementType().getId());
+        statement.setString(16, device.getResponsible());
+        statement.setString(17, device.getHistory());
     }
 
     private Device mapResultSetToEntity(ResultSet resultSet) throws SQLException {
@@ -184,6 +185,7 @@ public class DeviceRepository  {
         deviceName.setId(resultSet.getLong("device_name_id"));
         deviceName.setDeviceName(resultSet.getString("device_name"));
         device.setName(deviceName);
+        device.setRegNumber(resultSet.getString("reg_number"));
         device.setType(resultSet.getString("type"));
         device.setRange(resultSet.getString("range"));
         device.setCategory(resultSet.getString("category"));

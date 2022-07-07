@@ -2,6 +2,8 @@ package ru.kmikhails.metrolog.view;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
+import com.github.lgooddatepicker.optionalusertools.DateChangeListener;
+import com.github.lgooddatepicker.zinternaltools.DateChangeEvent;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.ButtonBarFactory;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -14,6 +16,8 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -27,6 +31,7 @@ public class DeviceFrame extends JFrame {
 
     private JComboBox<DeviceName> deviceNameJComboBox;
     private JTextField typeTextField;
+    private JTextField regNumberTextField;
     private JTextField rangeTextField;
     private JTextField categoryTextField;
     private JTextField factoryNumberTextField;
@@ -83,7 +88,7 @@ public class DeviceFrame extends JFrame {
 //        configureFields();
         FormLayout layout = new FormLayout(
                 "pref,3dlu,pref,10dlu",
-                "p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p," +
+                "p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p," +
                         "9dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p," +
                         "9dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,9dlu,p");
 
@@ -108,23 +113,28 @@ public class DeviceFrame extends JFrame {
         typeTextField.setColumns(25);
         builder.add(typeTextField, cc.xyw(3, 5, 1));
 
-        builder.addLabel("Пределы(диапазон)", cc.xy(1, 7));
+        builder.addLabel("Номер в реестре", cc.xy(1, 7));
+        regNumberTextField = new JTextField();
+        regNumberTextField.setFont(FONT);
+        builder.add(regNumberTextField, cc.xyw(3, 7, 1));
+
+        builder.addLabel("Пределы(диапазон)", cc.xy(1, 9));
         rangeTextField = new JTextField();
         rangeTextField.setFont(FONT);
-        builder.add(rangeTextField, cc.xyw(3, 7, 1));
+        builder.add(rangeTextField, cc.xyw(3, 9, 1));
 
-        builder.addLabel("Класс(разряд)", cc.xy(1, 9));
+        builder.addLabel("Класс(разряд)", cc.xy(1, 11));
         categoryTextField = new JTextField();
         categoryTextField.setFont(FONT);
-        builder.add(categoryTextField, cc.xyw(3, 9, 1));
+        builder.add(categoryTextField, cc.xyw(3, 11, 1));
 
-        builder.addLabel("Заводской №", cc.xy(1, 11));
+        builder.addLabel("Заводской №", cc.xy(1, 13));
         factoryNumberTextField = new JTextField();
         factoryNumberTextField.setFont(FONT);
-        builder.add(factoryNumberTextField, cc.xyw(3, 11, 1));
+        builder.add(factoryNumberTextField, cc.xyw(3, 13, 1));
 
-        builder.addSeparator("Метрологический контроль", cc.xyw(1, 13, 4));
-        builder.addLabel("Дата последней поверки", cc.xy(1, 15));
+        builder.addSeparator("Метрологический контроль", cc.xyw(1, 15, 4));
+        builder.addLabel("Дата последней поверки", cc.xy(1, 17));
         lastInspectionDatePicker = new DatePicker();
         DatePickerSettings lastDateSettings = new DatePickerSettings(LOCALE);
         lastDateSettings.setFirstDayOfWeek(DayOfWeek.MONDAY);
@@ -137,16 +147,17 @@ public class DeviceFrame extends JFrame {
         lastDateSettings.setFontCalendarWeekNumberLabels(FONT);
         lastDateSettings.setFontValidDate(FONT);
         lastInspectionDatePicker = new DatePicker(lastDateSettings);
-        builder.add(lastInspectionDatePicker, cc.xyw(3, 15, 1));
+        lastInspectionDatePicker.addDateChangeListener(getLastInspectionDateListener());
+        builder.add(lastInspectionDatePicker, cc.xyw(3, 17, 1));
 
-        builder.addLabel("Периодичность поверки", cc.xy(1, 17));
+        builder.addLabel("Периодичность поверки", cc.xy(1, 19));
         inspectionFrequencyTextField = new JTextField();
         inspectionFrequencyTextField.setFont(FONT);
         inspectionFrequencyTextField.addKeyListener(getFrequencyKeyListener());
         inspectionFrequencyTextField.getDocument().addDocumentListener(getFrequencyDocumentListener());
-        builder.add(inspectionFrequencyTextField, cc.xyw(3, 17, 1));
+        builder.add(inspectionFrequencyTextField, cc.xyw(3, 19, 1));
 
-        builder.addLabel("Дата следующей поверки", cc.xy(1, 19));
+        builder.addLabel("Дата следующей поверки", cc.xy(1, 21));
         nextInspectionDatePicker = new DatePicker();
         DatePickerSettings nextDateSettings = new DatePickerSettings(LOCALE);
         nextDateSettings.setFirstDayOfWeek(DayOfWeek.MONDAY);
@@ -159,43 +170,43 @@ public class DeviceFrame extends JFrame {
         nextDateSettings.setFontCalendarWeekNumberLabels(FONT);
         nextDateSettings.setFontValidDate(FONT);
         nextInspectionDatePicker = new DatePicker(nextDateSettings);
-        builder.add(nextInspectionDatePicker, cc.xyw(3, 19, 1));
+        builder.add(nextInspectionDatePicker, cc.xyw(3, 21, 1));
 
-        builder.addLabel("Место проведения поверки", cc.xy(1, 21));
+        builder.addLabel("Место проведения поверки", cc.xy(1, 23));
         inspectionPlaceComboBox = new JComboBox<>(inspectionPlaces);
         inspectionPlaceComboBox.setFont(FONT);
-        builder.add(inspectionPlaceComboBox, cc.xyw(3, 21, 1));
+        builder.add(inspectionPlaceComboBox, cc.xyw(3, 23, 1));
 
-        builder.addLabel("Номер документа", cc.xy(1, 23));
+        builder.addLabel("Номер документа", cc.xy(1, 25));
         inspectionProtocolNumberTextField = new JTextField();
         inspectionProtocolNumberTextField.setFont(FONT);
-        builder.add(inspectionProtocolNumberTextField, cc.xyw(3, 23, 1));
+        builder.add(inspectionProtocolNumberTextField, cc.xyw(3, 25, 1));
 
-        builder.addLabel("Вид МК", cc.xy(1, 25));
+        builder.addLabel("Вид МК", cc.xy(1, 27));
         inspectionTypeComboBox = new JComboBox<>(inspectionTypes);
         inspectionTypeComboBox.setFont(FONT);
-        builder.add(inspectionTypeComboBox, cc.xyw(3, 25, 1));
+        builder.add(inspectionTypeComboBox, cc.xyw(3, 27, 1));
 
-        builder.addSeparator("Дополнительные данные", cc.xyw(1, 27, 4));
-        builder.addLabel("Ответственный", cc.xy(1, 29));
+        builder.addSeparator("Дополнительные данные", cc.xyw(1, 29, 4));
+        builder.addLabel("Ответственный", cc.xy(1, 31));
         responsibleTextField = new JTextField();
         responsibleTextField.setFont(FONT);
-        builder.add(responsibleTextField, cc.xyw(3, 29, 1));
+        builder.add(responsibleTextField, cc.xyw(3, 31, 1));
 
-        builder.addLabel("Место установки", cc.xy(1, 31));
+        builder.addLabel("Место установки", cc.xy(1, 33));
         deviceLocationTypeComboBox = new JComboBox<>(deviceLocations);
         deviceLocationTypeComboBox.setFont(FONT);
-        builder.add(deviceLocationTypeComboBox, cc.xyw(3, 31, 1));
+        builder.add(deviceLocationTypeComboBox, cc.xyw(3, 33, 1));
 
-        builder.addLabel("Штатное состояние", cc.xy(1, 33));
+        builder.addLabel("Штатное состояние", cc.xy(1, 35));
         regularConditionTypeComboBox = new JComboBox<>(regularConditions);
         regularConditionTypeComboBox.setFont(FONT);
-        builder.add(regularConditionTypeComboBox, cc.xyw(3, 33, 1));
+        builder.add(regularConditionTypeComboBox, cc.xyw(3, 35, 1));
 
-        builder.addLabel("Вид измерений", cc.xy(1, 35));
+        builder.addLabel("Вид измерений", cc.xy(1, 37));
         measurementTypeComboBox = new JComboBox<>(measurementTypes);
         measurementTypeComboBox.setFont(FONT);
-        builder.add(measurementTypeComboBox, cc.xyw(3, 35, 1));
+        builder.add(measurementTypeComboBox, cc.xyw(3, 37, 1));
 
         saveButton = new JButton("Сохранить");
         saveButton.setFont(FONT);
@@ -207,7 +218,7 @@ public class DeviceFrame extends JFrame {
         cancelButton.addActionListener(e -> this.dispose());
 //        builder.add(cancelButton, cc.xyw(5, 35, 1));
         builder.add(ButtonBarFactory.buildOKCancelBar(saveButton, cancelButton),
-                cc.xyw(1, 37, 3));
+                cc.xyw(1, 39, 3));
 
         this.add(builder.getPanel());
         this.setSize(new Dimension(650, 640));
@@ -256,6 +267,7 @@ public class DeviceFrame extends JFrame {
         deviceName.setDeviceName(device.getName().getDeviceName());
         deviceNameJComboBox.setSelectedItem(deviceName);
         typeTextField.setText(device.getType());
+        regNumberTextField.setText(device.getRegNumber());
         rangeTextField.setText(device.getRange());
         categoryTextField.setText(device.getCategory());
         factoryNumberTextField.setText(device.getFactoryNumber());
@@ -295,8 +307,8 @@ public class DeviceFrame extends JFrame {
             Device device;
             validateForm();
             if (deviceId != null) {
-                Device existDevice = deviceService.findById(deviceId);
-                device = buildDevice(existDevice.getId());
+//                Device existDevice = deviceService.findById(deviceId);
+                device = buildDevice(deviceId);
                 deviceTableModel.updateTable(device);
             } else {
                 String deviceName = ((DeviceName) deviceNameJComboBox.getSelectedItem()).getDeviceName();
@@ -353,6 +365,7 @@ public class DeviceFrame extends JFrame {
         deviceName.setDeviceName(((DeviceName) deviceNameJComboBox.getSelectedItem()).getDeviceName());
         device.setName(deviceName);
         device.setType(typeTextField.getText());
+        device.setRegNumber(regNumberTextField.getText());
         device.setRange(rangeTextField.getText());
         device.setCategory(categoryTextField.getText());
         device.setFactoryNumber(factoryNumberTextField.getText());
@@ -425,6 +438,15 @@ public class DeviceFrame extends JFrame {
             @Override
             public void changedUpdate(DocumentEvent e) {
 
+            }
+        };
+    }
+
+    private DateChangeListener getLastInspectionDateListener() {
+        return dateChangeEvent -> {
+            if (inspectionFrequencyTextField.getText() != null && !inspectionFrequencyTextField.getText().isEmpty()) {
+                LocalDate localDate = dateChangeEvent.getNewDate().plusMonths(Long.parseLong(inspectionFrequencyTextField.getText()));
+                nextInspectionDatePicker.setDate(localDate);
             }
         };
     }

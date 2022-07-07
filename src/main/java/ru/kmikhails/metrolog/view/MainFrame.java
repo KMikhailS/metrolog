@@ -208,7 +208,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private Device findDeviceForRow() {
         int rowNumber = table.getSelectedRow();
         String name = ((DeviceName) table.getValueAt(rowNumber, 0)).getDeviceName();
-        String factoryNumber = (String) table.getValueAt(rowNumber, 4);
+        String factoryNumber = (String) table.getValueAt(rowNumber, 5);
 
         return deviceService.findByNameAndFactoryNumber(name, factoryNumber);
     }

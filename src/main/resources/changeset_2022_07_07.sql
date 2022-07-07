@@ -1,0 +1,1 @@
+ALTER TABLE devices ADD COLUMN reg_number VARCHAR(255);

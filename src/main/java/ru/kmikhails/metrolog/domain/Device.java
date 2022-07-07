@@ -6,6 +6,7 @@ import java.util.Objects;
 public class Device {
    private Long id;
    private DeviceName name;
+   private String regNumber;
    private String type;
    private String range;
    private String category;
@@ -36,6 +37,14 @@ public class Device {
 
    public void setName(DeviceName name) {
       this.name = name;
+   }
+
+   public String getRegNumber() {
+      return regNumber;
+   }
+
+   public void setRegNumber(String regNumber) {
+      this.regNumber = regNumber;
    }
 
    public String getType() {
@@ -167,6 +176,7 @@ public class Device {
               device.inspectionFrequency &&
               Objects.equals(id, device.id) &&
               Objects.equals(name, device.name) &&
+              Objects.equals(regNumber, device.regNumber) &&
               Objects.equals(type, device.type) &&
               Objects.equals(range, device.range) &&
               Objects.equals(category, device.category) &&
@@ -185,7 +195,7 @@ public class Device {
 
    @Override
    public int hashCode() {
-      return Objects.hash(id, name, type, range, category, factoryNumber, lastInspectionDate,
+      return Objects.hash(id, name, regNumber, type, range, category, factoryNumber, lastInspectionDate,
               inspectionFrequency, inspectionPlace, inspectionProtocolNumber, inspectionType,
               deviceLocation, regularCondition, measurementType, responsible, lastInspectionDate, history);
    }
@@ -195,6 +205,7 @@ public class Device {
       return "Device{" +
               "id=" + id +
               ", name='" + name + '\'' +
+              ", regNumber='" + regNumber + '\'' +
               ", type='" + type + '\'' +
               ", range='" + range + '\'' +
               ", category='" + category + '\'' +

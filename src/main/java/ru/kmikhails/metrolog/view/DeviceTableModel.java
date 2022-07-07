@@ -8,12 +8,12 @@ import java.util.List;
 
 public class DeviceTableModel extends AbstractTableModel {
     private static final String[] TABLE_HEADERS = {
-            "Наименование", "Тип", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер"};
+            "Наименование", "Тип", "Номер в реестре", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер"};
 
     private final String[] columnNames = TABLE_HEADERS;
 
     private final Class[] columnClass = new Class[]{
-            String.class, String.class, String.class, String.class, String.class};
+            String.class, String.class, String.class, String.class, String.class, String.class};
 
     private DeviceService deviceService;
     private List<Device> devices;
@@ -52,10 +52,12 @@ public class DeviceTableModel extends AbstractTableModel {
             case 1:
                 return device.getType();
             case 2:
-                return device.getRange();
+                return device.getRegNumber();
             case 3:
-                return device.getCategory();
+                return device.getRange();
             case 4:
+                return device.getCategory();
+            case 5:
                 return device.getFactoryNumber();
             default:
                 return null;
