@@ -85,14 +85,12 @@ public class DeviceFrame extends JFrame {
     }
 
     public void init() {
-//        configureFields();
         FormLayout layout = new FormLayout(
                 "pref,3dlu,pref,10dlu",
                 "p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p," +
                         "9dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p," +
                         "9dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,9dlu,p");
 
-//        layout.setColumnGroups(new int[][]{{1, 5}, {3, 7}});
 
         PanelBuilder builder = new PanelBuilder(layout);
         builder.setDefaultDialogBorder();
@@ -221,7 +219,7 @@ public class DeviceFrame extends JFrame {
                 cc.xyw(1, 39, 3));
 
         this.add(builder.getPanel());
-        this.setSize(new Dimension(650, 640));
+        this.setSize(new Dimension(700, 690));
 //        this.setResizable(false);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -233,6 +231,7 @@ public class DeviceFrame extends JFrame {
         deviceNameJComboBox.setSelectedIndex(-1);
         typeTextField.setText("");
         rangeTextField.setText("");
+        regNumberTextField.setText("");
         categoryTextField.setText("");
         factoryNumberTextField.setText("");
         lastInspectionDatePicker.setText("");
@@ -298,63 +297,62 @@ public class DeviceFrame extends JFrame {
         responsibleTextField.setText(device.getResponsible());
     }
 
-    private void configureFields() {
-
-    }
-
     private void saveDevice() {
         try {
             Device device;
-            validateForm();
-            if (deviceId != null) {
+            boolean valid = validateForm();
+            if (valid) {
+                if (deviceId != null) {
 //                Device existDevice = deviceService.findById(deviceId);
-                device = buildDevice(deviceId);
-                deviceTableModel.updateTable(device);
-            } else {
-                String deviceName = ((DeviceName) deviceNameJComboBox.getSelectedItem()).getDeviceName();
-                if (deviceService.findByNameAndFactoryNumber(deviceName, factoryNumberTextField.getText()) != null) {
-                    throw new DeviceException("Прибор с такими наименованием и заводским номером уже существует");
+                    device = buildDevice(deviceId);
+                    deviceTableModel.updateTable(device);
+                } else {
+                    String deviceName = ((DeviceName) deviceNameJComboBox.getSelectedItem()).getDeviceName();
+                    if (deviceService.findByNameAndFactoryNumber(deviceName, factoryNumberTextField.getText()) != null) {
+                        throw new DeviceException("Прибор с такими наименованием и заводским номером уже существует");
+                    }
+                    device = buildDevice(null);
+                    deviceTableModel.saveDevice(device);
                 }
-                device = buildDevice(null);
-                deviceTableModel.saveDevice(device);
+                this.dispose();
             }
-            this.dispose();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void validateForm() {
+    private boolean validateForm() {
         if (deviceNameJComboBox.getSelectedItem() == null) {
             throw new DeviceException("Наименование СИ не должно быть пустым");
         }
         if (factoryNumberTextField == null || factoryNumberTextField.getText().isEmpty()) {
             throw new DeviceException("Заводской номер не должен быть пустым");
         }
-        if (inspectionPlaceComboBox.getSelectedItem() == null) {
-            throw new DeviceException("Место проведения поверки не должно быть пустым");
-        }
-        if (inspectionTypeComboBox.getSelectedItem() == null) {
-            throw new DeviceException("Место установки не должно быть пустым");
-        }
-        if (deviceLocationTypeComboBox.getSelectedItem() == null) {
-            throw new DeviceException("Штатное состояние поверки не должно быть пустым");
-        }
-        if (measurementTypeComboBox.getSelectedItem() == null) {
-            throw new DeviceException("Вид измерений не должен быть пустым");
-        }
-        if (responsibleTextField == null || factoryNumberTextField.getText().isEmpty()) {
-            throw new DeviceException("Ответсвенный не должен быть пустым значением");
-        }
-        try {
-            int frequency = Integer.parseInt(inspectionFrequencyTextField.getText());
-            if (frequency < 0) {
-                throw new DeviceException("Периодичность поверки меньше нуля");
+        if (inspectionPlaceComboBox.getSelectedItem() == null
+                || inspectionTypeComboBox.getSelectedItem() == null
+                || deviceLocationTypeComboBox.getSelectedItem() == null
+                || measurementTypeComboBox.getSelectedItem() == null
+                || responsibleTextField == null
+                || factoryNumberTextField.getText().isEmpty()) {
+            int option = JOptionPane.showConfirmDialog(this, "Заполнены не все необхрдимые поля!\nВсё равно сохранить?",
+                    "Сохранение", JOptionPane.YES_NO_OPTION);
+            if (option == 1) {
+                return false;
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Периодичность поверки должна быть неотрицательным числом", "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
+
+        if (inspectionFrequencyTextField.getText() != null && !inspectionFrequencyTextField.getText().isEmpty()) {
+            try {
+                int frequency = Integer.parseInt(inspectionFrequencyTextField.getText());
+                if (frequency < 0) {
+                    throw new DeviceException("Периодичность поверки меньше нуля");
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Периодичность поверки должна быть неотрицательным числом", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        return true;
     }
 
     private Device buildDevice(Long id) {
@@ -371,33 +369,45 @@ public class DeviceFrame extends JFrame {
         device.setFactoryNumber(factoryNumberTextField.getText());
         device.setLastInspectionDate(lastInspectionDatePicker.getDate());
         device.setNextInspectionDate(nextInspectionDatePicker.getDate());
-        device.setInspectionFrequency(Integer.parseInt(inspectionFrequencyTextField.getText()));
+        if (inspectionFrequencyTextField.getText() != null && !inspectionFrequencyTextField.getText().isEmpty()) {
+            device.setInspectionFrequency(Integer.parseInt(inspectionFrequencyTextField.getText()));
+        }
         device.setInspectionProtocolNumber(inspectionProtocolNumberTextField.getText());
 
-        InspectionPlace inspectionPlace = new InspectionPlace();
-        inspectionPlace.setId(((InspectionPlace) inspectionPlaceComboBox.getSelectedItem()).getId());
-        inspectionPlace.setInspectionPlace(((InspectionPlace) inspectionPlaceComboBox.getSelectedItem()).getInspectionPlace());
-        device.setInspectionPlace(inspectionPlace);
+        if (inspectionPlaceComboBox.getSelectedItem() != null) {
+            InspectionPlace inspectionPlace = new InspectionPlace();
+            inspectionPlace.setId(((InspectionPlace) inspectionPlaceComboBox.getSelectedItem()).getId());
+            inspectionPlace.setInspectionPlace(((InspectionPlace) inspectionPlaceComboBox.getSelectedItem()).getInspectionPlace());
+            device.setInspectionPlace(inspectionPlace);
+        }
 
-        InspectionType inspectionType = new InspectionType();
-        inspectionType.setId(((InspectionType) inspectionTypeComboBox.getSelectedItem()).getId());
-        inspectionType.setInspectionType(((InspectionType) inspectionTypeComboBox.getSelectedItem()).getInspectionType());
-        device.setInspectionType(inspectionType);
+        if (inspectionTypeComboBox.getSelectedItem() != null) {
+            InspectionType inspectionType = new InspectionType();
+            inspectionType.setId(((InspectionType) inspectionTypeComboBox.getSelectedItem()).getId());
+            inspectionType.setInspectionType(((InspectionType) inspectionTypeComboBox.getSelectedItem()).getInspectionType());
+            device.setInspectionType(inspectionType);
+        }
 
-        DeviceLocation deviceLocation = new DeviceLocation();
-        deviceLocation.setId(((DeviceLocation) deviceLocationTypeComboBox.getSelectedItem()).getId());
-        deviceLocation.setDeviceLocation(((DeviceLocation) deviceLocationTypeComboBox.getSelectedItem()).getDeviceLocation());
-        device.setDeviceLocation(deviceLocation);
+        if (deviceLocationTypeComboBox.getSelectedItem() != null) {
+            DeviceLocation deviceLocation = new DeviceLocation();
+            deviceLocation.setId(((DeviceLocation) deviceLocationTypeComboBox.getSelectedItem()).getId());
+            deviceLocation.setDeviceLocation(((DeviceLocation) deviceLocationTypeComboBox.getSelectedItem()).getDeviceLocation());
+            device.setDeviceLocation(deviceLocation);
+        }
 
-        RegularCondition regularCondition = new RegularCondition();
-        regularCondition.setId(((RegularCondition) regularConditionTypeComboBox.getSelectedItem()).getId());
-        regularCondition.setRegularCondition(((RegularCondition) regularConditionTypeComboBox.getSelectedItem()).getRegularCondition());
-        device.setRegularCondition(regularCondition);
+        if (regularConditionTypeComboBox.getSelectedItem() != null) {
+            RegularCondition regularCondition = new RegularCondition();
+            regularCondition.setId(((RegularCondition) regularConditionTypeComboBox.getSelectedItem()).getId());
+            regularCondition.setRegularCondition(((RegularCondition) regularConditionTypeComboBox.getSelectedItem()).getRegularCondition());
+            device.setRegularCondition(regularCondition);
+        }
 
-        MeasurementType measurementType = new MeasurementType();
-        measurementType.setId(((MeasurementType) measurementTypeComboBox.getSelectedItem()).getId());
-        measurementType.setMeasurementType(((MeasurementType) measurementTypeComboBox.getSelectedItem()).getMeasurementType());
-        device.setMeasurementType(measurementType);
+        if (measurementTypeComboBox.getSelectedItem() != null) {
+            MeasurementType measurementType = new MeasurementType();
+            measurementType.setId(((MeasurementType) measurementTypeComboBox.getSelectedItem()).getId());
+            measurementType.setMeasurementType(((MeasurementType) measurementTypeComboBox.getSelectedItem()).getMeasurementType());
+            device.setMeasurementType(measurementType);
+        }
 
         device.setResponsible(responsibleTextField.getText());
 //        device.sethistory;
@@ -444,7 +454,9 @@ public class DeviceFrame extends JFrame {
 
     private DateChangeListener getLastInspectionDateListener() {
         return dateChangeEvent -> {
-            if (inspectionFrequencyTextField.getText() != null && !inspectionFrequencyTextField.getText().isEmpty()) {
+            if (inspectionFrequencyTextField.getText() != null
+                    && !inspectionFrequencyTextField.getText().isEmpty()
+                    && dateChangeEvent.getNewDate() != null) {
                 LocalDate localDate = dateChangeEvent.getNewDate().plusMonths(Long.parseLong(inspectionFrequencyTextField.getText()));
                 nextInspectionDatePicker.setDate(localDate);
             }

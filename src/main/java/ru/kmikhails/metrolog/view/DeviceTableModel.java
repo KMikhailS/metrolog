@@ -48,7 +48,7 @@ public class DeviceTableModel extends AbstractTableModel {
         Device device = devices.get(rowIndex);
         switch (columnIndex) {
             case 0:
-                return device.getName();
+                return device.getName().toString();
             case 1:
                 return device.getType();
             case 2:

@@ -6,8 +6,15 @@ import ru.kmikhails.metrolog.view.settings.*;
 import ru.kmikhails.metrolog.view.util.TableMouseListener;
 
 import javax.swing.*;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener {
@@ -28,6 +35,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private JTable table;
     private JScrollPane deviceScrollPane;
     private DeviceFrame deviceFrame;
+    private ShortDeviceFrame shortDeviceFrame;
     private Font font;
 
     private DeviceLocation[] deviceLocations;
@@ -60,6 +68,10 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     public void run() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.put("OptionPane.yesButtonText", "Да");
+            UIManager.put("OptionPane.noButtonText", "Нет");
+            UIManager.put("OptionPane.cancelButtonText", "Отмена");
+//        UIManager.put("OptionPane.okButtonText", "Готово");
             SwingUtilities.invokeLater(() ->
                     new MainFrame(deviceService, inspectionPlaceService, inspectionTypeService,
                             measurementTypeService, regularConditionService, deviceNameService, deviceLocationService).init());
@@ -77,7 +89,6 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         configureMenu();
         configurePopupMenu();
         printMainInterface();
-
     }
 
     private void configurePopupMenu() {
@@ -136,6 +147,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private void openDeviceLocationSettings() {
         List<String> deviceLoactions = deviceLocationService.findAll().stream()
                 .map(DeviceLocation::getDeviceLocation)
+                .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
         new DeviceLocationSettingsFrame(deviceLocationService, deviceLoactions, DEVICE_LOCATION, this).init();
     }
@@ -143,6 +155,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private void openInspectionPlaceSettings() {
         List<String> inspectionPlaces = inspectionPlaceService.findAll().stream()
                 .map(InspectionPlace::getInspectionPlace)
+                .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
         new InspectionPlaceSettingsFrame(inspectionPlaceService, inspectionPlaces, INSPECTION_PLACE, this).init();
     }
@@ -150,6 +163,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private void openInspectionTypeSettings() {
         List<String> inspectionTypes = inspectionTypeService.findAll().stream()
                 .map(InspectionType::getInspectionType)
+                .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
         new InspectionTypeSettingsFrame(inspectionTypeService, inspectionTypes, INSPECTION_TYPE, this).init();
     }
@@ -157,6 +171,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private void openMeasurementTypeSettings() {
         List<String> measurementTypes = measurementTypeService.findAll().stream()
                 .map(MeasurementType::getMeasurementType)
+                .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
         new MeasurementTypeSettingsFrame(measurementTypeService, measurementTypes, MEASUREMENT_TYPE, this).init();
     }
@@ -164,6 +179,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private void openRegularConditionSettings() {
         List<String> regularConditions = regularConditionService.findAll().stream()
                 .map(RegularCondition::getRegularCondition)
+                .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
         new RegularConditionSettingsFrame(regularConditionService, regularConditions, REGULAR_CONDITION, this).init();
     }
@@ -171,6 +187,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private void openDeviceNameSettings() {
         List<String> deviceNames = deviceNameService.findAll().stream()
                 .map(DeviceName::getDeviceName)
+                .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
         new DeviceNameSettingsFrame(deviceNameService, deviceNames, DEVICE_NAME, this).init();
     }
@@ -207,7 +224,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
 
     private Device findDeviceForRow() {
         int rowNumber = table.getSelectedRow();
-        String name = ((DeviceName) table.getValueAt(rowNumber, 0)).getDeviceName();
+        String name = ((String) table.getValueAt(rowNumber, 0));
         String factoryNumber = (String) table.getValueAt(rowNumber, 5);
 
         return deviceService.findByNameAndFactoryNumber(name, factoryNumber);
@@ -250,7 +267,31 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
 //        table.getTableHeader().setForeground(new Color(255, 255, 255));
         table.getTableHeader().setPreferredSize(new Dimension(0, 50));
         deviceScrollPane = new JScrollPane(table);
-        table.addMouseListener(new TableMouseListener(table));
+        initShortDeviceFrame();
+        table.addMouseListener(new TableMouseListener(table, deviceService, shortDeviceFrame));
+        sortTable();
+    }
+
+    private void initShortDeviceFrame() {
+        if (shortDeviceFrame == null) {
+            inspectionPlaces = inspectionPlaceService.findAll().toArray(new InspectionPlace[0]);
+            inspectionTypes = inspectionTypeService.findAll().toArray(new InspectionType[0]);
+            shortDeviceFrame = new ShortDeviceFrame(deviceService, deviceTableModel,
+                    inspectionPlaces, inspectionTypes);
+        }
+    }
+
+    private void sortTable() {
+        table.setAutoCreateRowSorter(true);
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(table.getModel());
+        table.setRowSorter(sorter);
+        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+//        int dateColumn = 1;
+//        sortKeys.add(new RowSorter.SortKey(dateColumn, SortOrder.DESCENDING));
+        int deviceNameColumn = 0;
+        sortKeys.add(new RowSorter.SortKey(deviceNameColumn, SortOrder.ASCENDING));
+        sorter.setSortKeys(sortKeys);
+        sorter.sort();
     }
 
     private void configureTableModel() {

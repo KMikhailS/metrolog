@@ -30,17 +30,17 @@ public class DeviceRepository  {
             "rc.regular_condition, d.measurement_type_id, mt.measurement_type, d.responsible, " +
             "d.history " +
             "FROM devices d " +
-            "JOIN device_locations dl " +
+            "LEFT JOIN device_locations dl " +
             "ON d.device_location_id = dl.device_location_id " +
-            "JOIN inspection_places ip " +
+            "LEFT JOIN inspection_places ip " +
             "ON d.inspection_place_id = ip.inspection_place_id " +
-            "JOIN inspection_types it " +
+            "LEFT JOIN inspection_types it " +
             "ON d.inspection_type_id = it.inspection_type_id " +
-            "JOIN measurement_types mt " +
+            "LEFT JOIN measurement_types mt " +
             "ON d.measurement_type_id = mt.measurement_type_id " +
-            "JOIN regular_conditions rc " +
+            "LEFT JOIN regular_conditions rc " +
             "ON d.regular_condition_id = rc.regular_condition_id " +
-            "JOIN device_names dn " +
+            "LEFT JOIN device_names dn " +
             "ON d.device_name_id = dn.device_name_id ";
     private static final String FIND_ALL_QUERY = SELECT_DEVICE_QUERY;
     private static final String FIND_BY_ID_QUERY = SELECT_DEVICE_QUERY + "WHERE d.device_id = ?";
@@ -168,12 +168,22 @@ public class DeviceRepository  {
             statement.setString(8, null);
         }
         statement.setInt(9, device.getInspectionFrequency());
-        statement.setLong(10, device.getInspectionPlace().getId());
+        if (device.getInspectionPlace() != null) {
+            statement.setLong(10, device.getInspectionPlace().getId());
+        }
         statement.setString(11, device.getInspectionProtocolNumber());
-        statement.setLong(12, device.getInspectionType().getId());
-        statement.setLong(13, device.getDeviceLocation().getId());
-        statement.setLong(14, device.getRegularCondition().getId());
-        statement.setLong(15, device.getMeasurementType().getId());
+        if (device.getInspectionType() != null) {
+            statement.setLong(12, device.getInspectionType().getId());
+        }
+        if (device.getDeviceLocation() != null) {
+            statement.setLong(13, device.getDeviceLocation().getId());
+        }
+        if (device.getRegularCondition() != null) {
+            statement.setLong(14, device.getRegularCondition().getId());
+        }
+        if (device.getMeasurementType() != null) {
+            statement.setLong(15, device.getMeasurementType().getId());
+        }
         statement.setString(16, device.getResponsible());
         statement.setString(17, device.getHistory());
     }
