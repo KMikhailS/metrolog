@@ -4,16 +4,21 @@ import ru.kmikhails.metrolog.domain.Device;
 import ru.kmikhails.metrolog.service.DeviceService;
 
 import javax.swing.table.AbstractTableModel;
+import java.awt.*;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class DeviceTableModel extends AbstractTableModel {
     private static final String[] TABLE_HEADERS = {
-            "Наименование", "Тип", "Номер в реестре", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер"};
+            "Наименование", "Тип", "Номер в реестре", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер", "Дата поверки"};
 
     private final String[] columnNames = TABLE_HEADERS;
 
     private final Class[] columnClass = new Class[]{
-            String.class, String.class, String.class, String.class, String.class, String.class};
+            String.class, String.class, String.class, String.class, String.class, String.class, LocalDate.class};
 
     private DeviceService deviceService;
     private List<Device> devices;
@@ -59,9 +64,25 @@ public class DeviceTableModel extends AbstractTableModel {
                 return device.getCategory();
             case 5:
                 return device.getFactoryNumber();
+            case 6:
+                return device.getNextInspectionDate();
             default:
                 return null;
         }
+    }
+
+    public Color getRowColor(int row) {
+        Device device = devices.get(row);
+        LocalDate now = LocalDate.now();
+        LocalDate nextInspectionDate = device.getNextInspectionDate();
+        long period = ChronoUnit.DAYS.between(now, nextInspectionDate);
+        if (period < 2) {
+            return Color.RED;
+        }
+        if (period < 14) {
+            return new Color(57, 228, 226);
+        }
+        return Color.BLACK;
     }
 
     public void updateTable(Device device) {

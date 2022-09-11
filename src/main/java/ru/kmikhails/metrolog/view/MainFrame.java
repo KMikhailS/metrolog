@@ -3,6 +3,8 @@ package ru.kmikhails.metrolog.view;
 import ru.kmikhails.metrolog.domain.*;
 import ru.kmikhails.metrolog.service.*;
 import ru.kmikhails.metrolog.view.settings.*;
+import ru.kmikhails.metrolog.view.util.ChangeRowColorRenderer;
+import ru.kmikhails.metrolog.view.util.ExcelExporter;
 import ru.kmikhails.metrolog.view.util.TableMouseListener;
 
 import javax.swing.*;
@@ -254,6 +256,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private void configureTable() {
         font = new Font(null, Font.PLAIN, 18);
         table = new JTable(deviceTableModel);
+        table.setDefaultRenderer(Object.class, new ChangeRowColorRenderer());
         table.setSelectionBackground(new Color(180, 180, 180));
 //        table.setShowVerticalLines(false);
         table.setRowHeight(18 + 5);
@@ -284,8 +287,8 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         TableRowSorter<TableModel> sorter = new TableRowSorter<>(table.getModel());
         table.setRowSorter(sorter);
         List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-        int typeColumn = 1;
-        sortKeys.add(new RowSorter.SortKey(typeColumn, SortOrder.ASCENDING));
+//        int typeColumn = 1;
+//        sortKeys.add(new RowSorter.SortKey(typeColumn, SortOrder.ASCENDING));
         int deviceNameColumn = 0;
         sortKeys.add(new RowSorter.SortKey(deviceNameColumn, SortOrder.ASCENDING));
         sorter.setSortKeys(sortKeys);
@@ -301,4 +304,14 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     public void reconfigureDeviceFrame() {
         configureDeviceForm(true);
     }
+
+//    private void exportToExel() {
+//        SwingUtilities.invokeLater(() -> {
+//            List<Device> accounts = deviceService.findAllByTableType("ЧЦСМ", year).stream()
+//                    .filter(account -> account.getInvoiceNumber().isEmpty())
+//                    .sorted(Comparator.comparing(Account::getAccountNumber))
+//                    .collect(Collectors.toList());
+//            ExcelExporter.export(accounts);
+//        });
+//    }
 }
