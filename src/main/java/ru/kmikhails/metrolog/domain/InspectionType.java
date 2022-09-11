@@ -2,7 +2,7 @@ package ru.kmikhails.metrolog.domain;
 
 import java.util.Objects;
 
-public class InspectionType {
+public class InspectionType implements Comparable<InspectionType> {
     private Long id;
     private String inspectionType;
 
@@ -38,5 +38,10 @@ public class InspectionType {
     @Override
     public String toString() {
         return inspectionType;
+    }
+
+    @Override
+    public int compareTo(InspectionType o) {
+        return inspectionType.compareTo(o.getInspectionType());
     }
 }

@@ -3,6 +3,7 @@ package ru.kmikhails.metrolog.service;
 import ru.kmikhails.metrolog.repository.AbstractCrudRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class AbstractService<E> {
 
@@ -21,7 +22,7 @@ public abstract class AbstractService<E> {
     }
 
     public List<E> findAll() {
-        return crudRepository.findAll();
+        return crudRepository.findAll().stream().sorted().collect(Collectors.toList());
     }
 
     public E findByName(String value) {

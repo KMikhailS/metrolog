@@ -2,7 +2,7 @@ package ru.kmikhails.metrolog.domain;
 
 import java.util.Objects;
 
-public class RegularCondition {
+public class RegularCondition implements Comparable<RegularCondition> {
     private Long id;
     private String regularCondition;
 
@@ -38,5 +38,10 @@ public class RegularCondition {
     @Override
     public String toString() {
         return regularCondition;
+    }
+
+    @Override
+    public int compareTo(RegularCondition o) {
+        return regularCondition.compareTo(o.getRegularCondition());
     }
 }

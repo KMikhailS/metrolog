@@ -131,11 +131,10 @@ public class ShortDeviceFrame extends JFrame {
                 cc.xyw(1, 15, 3));
 
         this.add(builder.getPanel());
-        this.setSize(new Dimension(550, 350));
+        this.setSize(new Dimension(530, 320));
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     }
-
 
     public void showExistFrame(Device device) {
         setDeviceId(device.getId());

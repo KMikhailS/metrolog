@@ -2,7 +2,7 @@ package ru.kmikhails.metrolog.domain;
 
 import java.util.Objects;
 
-public class DeviceLocation {
+public class DeviceLocation implements Comparable<DeviceLocation> {
     private Long id;
     private String deviceLocation;
 
@@ -38,5 +38,10 @@ public class DeviceLocation {
     @Override
     public String toString() {
         return deviceLocation;
+    }
+
+    @Override
+    public int compareTo(DeviceLocation o) {
+        return deviceLocation.compareTo(o.getDeviceLocation());
     }
 }

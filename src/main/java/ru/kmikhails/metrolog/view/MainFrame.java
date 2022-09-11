@@ -11,10 +11,8 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener {
@@ -286,8 +284,8 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         TableRowSorter<TableModel> sorter = new TableRowSorter<>(table.getModel());
         table.setRowSorter(sorter);
         List<RowSorter.SortKey> sortKeys = new ArrayList<>();
-//        int dateColumn = 1;
-//        sortKeys.add(new RowSorter.SortKey(dateColumn, SortOrder.DESCENDING));
+        int typeColumn = 1;
+        sortKeys.add(new RowSorter.SortKey(typeColumn, SortOrder.ASCENDING));
         int deviceNameColumn = 0;
         sortKeys.add(new RowSorter.SortKey(deviceNameColumn, SortOrder.ASCENDING));
         sorter.setSortKeys(sortKeys);

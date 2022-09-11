@@ -334,7 +334,7 @@ public class DeviceFrame extends JFrame {
                 || measurementTypeComboBox.getSelectedItem() == null
                 || responsibleTextField == null
                 || factoryNumberTextField.getText().isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(this, "Заполнены не все необхрдимые поля!\nВсё равно сохранить?",
+            int option = JOptionPane.showConfirmDialog(this, "Заполнены не все необходимые поля!\nВсё равно сохранить?",
                     "Сохранение", JOptionPane.YES_NO_OPTION);
             if (option == 1) {
                 return false;
