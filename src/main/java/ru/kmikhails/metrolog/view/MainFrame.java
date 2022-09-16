@@ -9,6 +9,7 @@ import ru.kmikhails.metrolog.view.settings.dictionaries.InspectionTypeSettingsFr
 import ru.kmikhails.metrolog.view.settings.dictionaries.MeasurementTypeSettingsFrame;
 import ru.kmikhails.metrolog.view.settings.dictionaries.ReconfigureDeviceFrameListener;
 import ru.kmikhails.metrolog.view.settings.dictionaries.RegularConditionSettingsFrame;
+import ru.kmikhails.metrolog.view.settings.periods.WarnPeriodsFrame;
 import ru.kmikhails.metrolog.view.util.ChangeRowColorRenderer;
 import ru.kmikhails.metrolog.view.util.ExcelExporter;
 import ru.kmikhails.metrolog.view.util.TableMouseListener;
@@ -37,7 +38,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private static final String REGULAR_CONDITION = "Штатное состояние";
     private static final String DEVICE_NAME = "Наименование СИ";
     private static final String DEVICE_LOCATION = "Место установки";
-    private static final String WARN_PERIOD = "Место установки";
+    private static final String WARN_PERIOD = "Срок предупреждения";
     private static final String EXPORT = "Экспорт";
     private static final String EXPORT_EXCEL = "Экспорт приборов в Excel";
 
@@ -153,9 +154,10 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         JMenuItem deviceLocationMenuItem = new JMenuItem(DEVICE_LOCATION);
         settingsMenu.add(deviceLocationMenuItem);
         deviceLocationMenuItem.addActionListener(e -> openDeviceLocationSettings());
-        JMenuItem inspectionPeriodsMenuItem = new JMenuItem(DEVICE_LOCATION);
-        settingsMenu.add(inspectionPeriodsMenuItem);
-        inspectionPeriodsMenuItem.addActionListener(e -> openDeviceLocationSettings());
+        settingsMenu.add(new JSeparator());
+        JMenuItem warnPeriodsMenuItem = new JMenuItem(WARN_PERIOD);
+        settingsMenu.add(warnPeriodsMenuItem);
+        warnPeriodsMenuItem.addActionListener(e -> openWarnPeriodsSettings());
 
         JMenuItem exportForCsmMenuItem = new JMenuItem(EXPORT_EXCEL);
         exportMenu.add(exportForCsmMenuItem);
@@ -209,6 +211,14 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
                 .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
         new DeviceNameSettingsFrame(deviceNameService, deviceNames, DEVICE_NAME, this).init();
+    }
+
+    private void openWarnPeriodsSettings() {
+        List<String> deviceNames = deviceNameService.findAll().stream()
+                .map(DeviceName::getDeviceName)
+                .sorted(Comparator.comparing(String::toUpperCase))
+                .collect(Collectors.toList());
+        new WarnPeriodsFrame(deviceNames).init();
     }
 
     private void addNewDevice() {
