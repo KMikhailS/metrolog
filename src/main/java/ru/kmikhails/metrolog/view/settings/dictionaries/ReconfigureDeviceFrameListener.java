@@ -1,4 +1,4 @@
-package ru.kmikhails.metrolog.view.settings;
+package ru.kmikhails.metrolog.view.settings.dictionaries;
 
 public interface ReconfigureDeviceFrameListener {
 

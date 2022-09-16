@@ -39,7 +39,7 @@ public class ExcelExporter {
             cellFont.setFontHeightInPoints(CELL_FONT_SIZE);
             cellStyle.setFont(cellFont);
 
-            Cell headerCell = header.createCell(0);
+            Cell headerCell = header.createCell(1);
             headerCell.setCellValue(SHEET_NAME);
             headerCell.setCellStyle(headerStyle);
 

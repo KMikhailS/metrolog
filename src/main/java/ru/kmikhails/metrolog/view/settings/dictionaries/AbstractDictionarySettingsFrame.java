@@ -1,4 +1,4 @@
-package ru.kmikhails.metrolog.view.settings;
+package ru.kmikhails.metrolog.view.settings.dictionaries;
 
 import ru.kmikhails.metrolog.view.util.HorizontalPanel;
 import ru.kmikhails.metrolog.view.util.VerticalPanel;

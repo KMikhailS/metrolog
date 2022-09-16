@@ -22,7 +22,10 @@ public class ChangeRowColorRenderer extends DefaultTableCellRenderer {
         DeviceTableModel model = (DeviceTableModel) table.getModel();
         Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         int trueRow = table.getRowSorter().convertRowIndexToModel(row);
-        cell.setForeground(model.getRowColor(trueRow));
+        cell.setBackground(model.getRowColor(trueRow));
+        if (isSelected) {
+            cell.setBackground(new Color(180, 180, 180));
+        }
 
         return cell;
     }

@@ -2,7 +2,13 @@ package ru.kmikhails.metrolog.view;
 
 import ru.kmikhails.metrolog.domain.*;
 import ru.kmikhails.metrolog.service.*;
-import ru.kmikhails.metrolog.view.settings.*;
+import ru.kmikhails.metrolog.view.settings.dictionaries.DeviceLocationSettingsFrame;
+import ru.kmikhails.metrolog.view.settings.dictionaries.DeviceNameSettingsFrame;
+import ru.kmikhails.metrolog.view.settings.dictionaries.InspectionPlaceSettingsFrame;
+import ru.kmikhails.metrolog.view.settings.dictionaries.InspectionTypeSettingsFrame;
+import ru.kmikhails.metrolog.view.settings.dictionaries.MeasurementTypeSettingsFrame;
+import ru.kmikhails.metrolog.view.settings.dictionaries.ReconfigureDeviceFrameListener;
+import ru.kmikhails.metrolog.view.settings.dictionaries.RegularConditionSettingsFrame;
 import ru.kmikhails.metrolog.view.util.ChangeRowColorRenderer;
 import ru.kmikhails.metrolog.view.util.ExcelExporter;
 import ru.kmikhails.metrolog.view.util.TableMouseListener;
@@ -11,13 +17,14 @@ import javax.swing.*;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener {
+    private static final List<String> NON_HIGHLIGHT_STATE = Collections.singletonList("дл. хранение");
     private static final String MENU = "Меню";
     private static final String ADD = "Добавить";
     private static final String UPDATE = "Обновить";
@@ -30,6 +37,9 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private static final String REGULAR_CONDITION = "Штатное состояние";
     private static final String DEVICE_NAME = "Наименование СИ";
     private static final String DEVICE_LOCATION = "Место установки";
+    private static final String WARN_PERIOD = "Место установки";
+    private static final String EXPORT = "Экспорт";
+    private static final String EXPORT_EXCEL = "Экспорт приборов в Excel";
 
     private DeviceTableModel deviceTableModel;
     private JTable table;
@@ -120,6 +130,9 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         mainMenu.add(addDeviceMenuItem);
         addDeviceMenuItem.addActionListener(e -> addNewDevice());
 
+        JMenu exportMenu = new JMenu(EXPORT);
+        menuBar.add(exportMenu);
+
         JMenu settingsMenu = new JMenu(SETTINGS);
         menuBar.add(settingsMenu);
         JMenuItem inspectionPlaceMenuItem = new JMenuItem(INSPECTION_PLACE);
@@ -140,7 +153,13 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         JMenuItem deviceLocationMenuItem = new JMenuItem(DEVICE_LOCATION);
         settingsMenu.add(deviceLocationMenuItem);
         deviceLocationMenuItem.addActionListener(e -> openDeviceLocationSettings());
+        JMenuItem inspectionPeriodsMenuItem = new JMenuItem(DEVICE_LOCATION);
+        settingsMenu.add(inspectionPeriodsMenuItem);
+        inspectionPeriodsMenuItem.addActionListener(e -> openDeviceLocationSettings());
 
+        JMenuItem exportForCsmMenuItem = new JMenuItem(EXPORT_EXCEL);
+        exportMenu.add(exportForCsmMenuItem);
+        exportForCsmMenuItem.addActionListener(e -> exportToExel());
 
     }
 
@@ -258,6 +277,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         table = new JTable(deviceTableModel);
         table.setDefaultRenderer(Object.class, new ChangeRowColorRenderer());
         table.setSelectionBackground(new Color(180, 180, 180));
+        table.setSelectionForeground(Color.BLACK);
 //        table.setShowVerticalLines(false);
         table.setRowHeight(18 + 5);
         table.setFont(font);
@@ -305,13 +325,23 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         configureDeviceForm(true);
     }
 
-//    private void exportToExel() {
-//        SwingUtilities.invokeLater(() -> {
-//            List<Device> accounts = deviceService.findAllByTableType("ЧЦСМ", year).stream()
-//                    .filter(account -> account.getInvoiceNumber().isEmpty())
-//                    .sorted(Comparator.comparing(Account::getAccountNumber))
-//                    .collect(Collectors.toList());
-//            ExcelExporter.export(accounts);
-//        });
-//    }
+    private void exportToExel() {
+        SwingUtilities.invokeLater(() -> {
+            List<Device> accounts = deviceService.findAll().stream()
+                    .filter(this::filterDevice)
+                    .sorted(Comparator.comparing(Device::getName))
+                    .collect(Collectors.toList());
+            ExcelExporter.export(accounts);
+        });
+    }
+
+    private boolean filterDevice(Device device) {
+        LocalDate nextInspectionDate = device.getNextInspectionDate();
+        long period = ChronoUnit.DAYS.between(LocalDate.now(), nextInspectionDate);
+        if (device.getRegularCondition() != null
+                && !NON_HIGHLIGHT_STATE.contains(device.getRegularCondition().getRegularCondition())) {
+            return period < 14;
+        }
+        return false;
+    }
 }

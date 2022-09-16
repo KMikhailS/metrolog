@@ -1,4 +1,4 @@
-package ru.kmikhails.metrolog.view.settings;
+package ru.kmikhails.metrolog.view.settings.dictionaries;
 
 import ru.kmikhails.metrolog.domain.DeviceLocation;
 import ru.kmikhails.metrolog.service.DeviceLocationService;
