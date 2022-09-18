@@ -40,7 +40,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private static final String DEVICE_LOCATION = "Место установки";
     private static final String WARN_PERIOD = "Срок предупреждения";
     private static final String EXPORT = "Экспорт";
-    private static final String EXPORT_EXCEL = "Экспорт приборов в Excel";
+    private static final String EXPORT_EXCEL = "Экспорт приборов \"в поверку\"";
 
     private DeviceTableModel deviceTableModel;
     private JTable table;
@@ -325,9 +325,11 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         sorter.sort();
     }
 
-    private void configureTableModel() {
+    private List<Device> configureTableModel() {
         List<Device> devices = deviceService.findAll();
         deviceTableModel = new DeviceTableModel(deviceService, devices);
+
+        return devices;
     }
 
     @Override

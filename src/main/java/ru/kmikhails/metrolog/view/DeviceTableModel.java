@@ -4,14 +4,18 @@ import ru.kmikhails.metrolog.domain.Device;
 import ru.kmikhails.metrolog.service.DeviceService;
 
 import javax.swing.table.AbstractTableModel;
+import javax.swing.text.DateFormatter;
 import java.awt.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class DeviceTableModel extends AbstractTableModel {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
+    private static final String STATE = "в поверке";
     private static final List<String> NON_HIGHLIGHT_STATE = Collections.singletonList("дл. хранение");
     private static final String[] TABLE_HEADERS = {
             "Наименование", "Тип", "Номер в реестре", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер", "Дата поверки"};
@@ -19,7 +23,7 @@ public class DeviceTableModel extends AbstractTableModel {
     private final String[] columnNames = TABLE_HEADERS;
 
     private final Class[] columnClass = new Class[]{
-            String.class, String.class, String.class, String.class, String.class, String.class, LocalDate.class};
+            String.class, String.class, String.class, String.class, String.class, String.class, String.class};
 
     private final DeviceService deviceService;
     private List<Device> devices;
@@ -66,7 +70,10 @@ public class DeviceTableModel extends AbstractTableModel {
             case 5:
                 return device.getFactoryNumber();
             case 6:
-                return device.getNextInspectionDate();
+                if (STATE.equals(device.getRegularCondition().getRegularCondition())) {
+                    return STATE;
+                }
+                return FORMATTER.format(device.getNextInspectionDate());
             default:
                 return null;
         }
@@ -83,7 +90,6 @@ public class DeviceTableModel extends AbstractTableModel {
                 return Color.RED;
             }
             if (period < 14) {
-//                return new Color(57, 228, 226);
                 return Color.YELLOW;
             }
         }

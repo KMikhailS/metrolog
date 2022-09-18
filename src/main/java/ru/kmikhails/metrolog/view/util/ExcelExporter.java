@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class ExcelExporter {
-    private static final String SHEET_NAME = "СИ с истекшим сроком";
+    private static final String SHEET_NAME = "СИ в поверку";
     private static final short TITLE_FONT_SIZE = 14;
     private static final short CELL_FONT_SIZE = 12;
     private static final String FONT_NAME = "Times New Roman";
@@ -49,7 +49,7 @@ public class ExcelExporter {
 
             File currDir = new File(".");
             String path = currDir.getAbsolutePath();
-            String fileLocation = path.substring(0, path.length() - 1) + "си_истекший_срок.xlsx";
+            String fileLocation = path.substring(0, path.length() - 1) + "си_в_поверку.xlsx";
             File exportFile = new File(fileLocation);
             if (exportFile.exists()) {
                 exportFile.delete();
