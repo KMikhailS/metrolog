@@ -12,6 +12,7 @@ import ru.kmikhails.metrolog.view.settings.dictionaries.RegularConditionSettings
 import ru.kmikhails.metrolog.view.settings.periods.WarnPeriodsFrame;
 import ru.kmikhails.metrolog.view.util.ChangeRowColorRenderer;
 import ru.kmikhails.metrolog.view.util.ExcelExporter;
+import ru.kmikhails.metrolog.view.util.InspectionScheduleExporter;
 import ru.kmikhails.metrolog.view.util.TableMouseListener;
 
 import javax.swing.*;
@@ -41,6 +42,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private static final String WARN_PERIOD = "Срок предупреждения";
     private static final String EXPORT = "Экспорт";
     private static final String EXPORT_EXCEL = "Экспорт приборов \"в поверку\"";
+    private static final String INSPECTION_SCHEDULE = "График поверки";
 
     private DeviceTableModel deviceTableModel;
     private JTable table;
@@ -131,9 +133,6 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         mainMenu.add(addDeviceMenuItem);
         addDeviceMenuItem.addActionListener(e -> addNewDevice());
 
-        JMenu exportMenu = new JMenu(EXPORT);
-        menuBar.add(exportMenu);
-
         JMenu settingsMenu = new JMenu(SETTINGS);
         menuBar.add(settingsMenu);
         JMenuItem inspectionPlaceMenuItem = new JMenuItem(INSPECTION_PLACE);
@@ -154,23 +153,28 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         JMenuItem deviceLocationMenuItem = new JMenuItem(DEVICE_LOCATION);
         settingsMenu.add(deviceLocationMenuItem);
         deviceLocationMenuItem.addActionListener(e -> openDeviceLocationSettings());
-        settingsMenu.add(new JSeparator());
-        JMenuItem warnPeriodsMenuItem = new JMenuItem(WARN_PERIOD);
-        settingsMenu.add(warnPeriodsMenuItem);
-        warnPeriodsMenuItem.addActionListener(e -> openWarnPeriodsSettings());
+//        settingsMenu.add(new JSeparator());
+//        JMenuItem warnPeriodsMenuItem = new JMenuItem(WARN_PERIOD);
+//        settingsMenu.add(warnPeriodsMenuItem);
+//        warnPeriodsMenuItem.addActionListener(e -> openWarnPeriodsSettings());
+
+        JMenu exportMenu = new JMenu(EXPORT);
+        menuBar.add(exportMenu);
 
         JMenuItem exportForCsmMenuItem = new JMenuItem(EXPORT_EXCEL);
         exportMenu.add(exportForCsmMenuItem);
         exportForCsmMenuItem.addActionListener(e -> exportToExel());
-
+        JMenuItem inspectionScheduleMenuItem = new JMenuItem(INSPECTION_SCHEDULE);
+        exportMenu.add(inspectionScheduleMenuItem);
+        inspectionScheduleMenuItem.addActionListener(e -> getInspectionSchedule());
     }
 
     private void openDeviceLocationSettings() {
-        List<String> deviceLoactions = deviceLocationService.findAll().stream()
+        List<String> deviceLocations = deviceLocationService.findAll().stream()
                 .map(DeviceLocation::getDeviceLocation)
                 .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
-        new DeviceLocationSettingsFrame(deviceLocationService, deviceLoactions, DEVICE_LOCATION, this).init();
+        new DeviceLocationSettingsFrame(deviceLocationService, deviceLocations, DEVICE_LOCATION, this).init();
     }
 
     private void openInspectionPlaceSettings() {
@@ -344,6 +348,13 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
                     .sorted(Comparator.comparing(Device::getName))
                     .collect(Collectors.toList());
             ExcelExporter.export(accounts);
+        });
+    }
+
+    private void getInspectionSchedule() {
+        SwingUtilities.invokeLater(() -> {
+            List<Device> accounts = deviceService.findAll();
+            InspectionScheduleExporter.export(accounts);
         });
     }
 
