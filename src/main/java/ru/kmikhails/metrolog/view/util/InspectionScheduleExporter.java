@@ -49,6 +49,7 @@ public class InspectionScheduleExporter {
 
             sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
 
+            addMainHeader(sheet, cellStyle);
             addTableHeader(sheet, headers, cellStyle);
             addTableData(accounts, sheet, cellStyle);
 
@@ -67,6 +68,43 @@ public class InspectionScheduleExporter {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void addMainHeader(Sheet sheet, CellStyle cellStyle) {
+        Row row1 = sheet.createRow(0);
+        Cell cellA1 = row1.createCell(0);
+        cellA1.setCellValue("ООО \"СКБ СТРОЙПРИБОР\"");
+        Cell cellL1 = row1.createCell(11);
+        cellL1.setCellValue("УТВЕРЖДАЮ");
+
+        Row row2 = sheet.createRow(1);
+        Cell cellA2 = row2.createCell(0);
+        cellA2.setCellValue("наименование владельца средств измерения");
+        Cell cellK2 = row2.createCell(10);
+        cellK2.setCellValue("Главный метролог ООО \"СКБ Стройприбор\"");
+
+        Row row4 = sheet.createRow(3);
+        Cell cellA4 = row4.createCell(0);
+        cellA4.setCellValue("тел.(351) 277-8-555");
+        Cell cellG4 = row4.createCell(6);
+        cellG4.setCellValue("ГРАФИК");
+        Cell cellM4 = row4.createCell(12);
+        cellM4.setCellValue("И.А.Капралова");
+
+        Row row5 = sheet.createRow(4);
+        Cell cellG5 = row5.createCell(6);
+        cellG5.setCellValue("поверки эталонов и СИ лаборатории");
+        Cell cellK5 = row5.createCell(10);
+        cellK5.setCellValue("подпись");
+
+        Row row6 = sheet.createRow(3);
+        Cell cellA7 = row6.createCell(0);
+        cellA7.setCellValue("Вид измерений");
+
+        Row row7 = sheet.createRow(3);
+        Cell cellA8 = row7.createCell(0);
+        cellA8.setCellValue("Измерение механических величин");
+
     }
 
     private static void addTableHeader(Sheet sheet, String[] headers, CellStyle cellStyle) {
