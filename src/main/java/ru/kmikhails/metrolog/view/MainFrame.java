@@ -164,9 +164,14 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         JMenuItem exportForCsmMenuItem = new JMenuItem(EXPORT_EXCEL);
         exportMenu.add(exportForCsmMenuItem);
         exportForCsmMenuItem.addActionListener(e -> exportToExel());
-        JMenuItem inspectionScheduleMenuItem = new JMenuItem(INSPECTION_SCHEDULE);
+        JMenu inspectionScheduleMenuItem = new JMenu(INSPECTION_SCHEDULE);
         exportMenu.add(inspectionScheduleMenuItem);
-        inspectionScheduleMenuItem.addActionListener(e -> getInspectionSchedule());
+        List<MeasurementType> measurementTypes = measurementTypeService.findAll();
+        for (MeasurementType measurementType : measurementTypes) {
+            JMenuItem jMenuItem = new JMenuItem(measurementType.getMeasurementType());
+            inspectionScheduleMenuItem.add(jMenuItem);
+            jMenuItem.addActionListener(e -> getInspectionSchedule(measurementType.getMeasurementType()));
+        }
     }
 
     private void openDeviceLocationSettings() {
@@ -351,10 +356,16 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         });
     }
 
-    private void getInspectionSchedule() {
+    private void getInspectionSchedule(String measurementType) {
         SwingUtilities.invokeLater(() -> {
+            String year = "2023";
             List<Device> accounts = deviceService.findAll();
-            InspectionScheduleExporter.export(accounts);
+            List<Device> deviceList = accounts.stream()
+                    .filter(device -> measurementType.equals(device.getMeasurementType().getMeasurementType()))
+                    .filter(device -> !"дл. хранение".equals(device.getRegularCondition().getRegularCondition()))
+                    .filter(device -> device.getNextInspectionDate().getYear() == Integer.parseInt(year))
+                    .collect(Collectors.toList());
+            InspectionScheduleExporter.export(deviceList, year, measurementType);
         });
     }
 

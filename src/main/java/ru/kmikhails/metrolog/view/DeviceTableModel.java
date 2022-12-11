@@ -86,6 +86,9 @@ public class DeviceTableModel extends AbstractTableModel {
         long period = ChronoUnit.DAYS.between(now, nextInspectionDate);
         if (device.getRegularCondition() != null
                 && !NON_HIGHLIGHT_STATE.contains(device.getRegularCondition().getRegularCondition())) {
+            if (STATE.equals(device.getRegularCondition().getRegularCondition())) {
+                return Color.GREEN;
+            }
             if (period < 2) {
                 return Color.RED;
             }
