@@ -30,14 +30,6 @@ public class InspectionScheduleExporter {
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet(SHEET_NAME);
-            Row header = sheet.createRow(0);
-
-            CellStyle headerStyle = workbook.createCellStyle();
-            XSSFFont font = (XSSFFont) workbook.createFont();
-            font.setFontName(TIMES_NEW_ROMAN_FONT);
-            font.setFontHeightInPoints(FONT_SIZE_14);
-            font.setBold(true);
-            headerStyle.setFont(font);
 
             CellStyle cellStyle = workbook.createCellStyle();
             XSSFFont cellFont = (XSSFFont) workbook.createFont();
@@ -45,26 +37,25 @@ public class InspectionScheduleExporter {
             cellFont.setFontHeightInPoints(FONT_SIZE_12);
             cellStyle.setFont(cellFont);
 
-            Cell headerCell = header.createCell(1);
-            headerCell.setCellValue(SHEET_NAME);
-            headerCell.setCellStyle(headerStyle);
+            CellStyle borderStyle = workbook.createCellStyle();
+            borderStyle.setBorderLeft(BorderStyle.THIN);
 
-            sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
-
-            addMainHeader(sheet, workbook, year, measurementType);
-            addTableHeader(sheet, headers, cellStyle);
-            addTableData(accounts, sheet, cellStyle);
+            int mainHeaderSize = addMainHeader(sheet, workbook, year, measurementType);
+            int tableHeaderSize = addTableHeader(sheet, headers, cellStyle, borderStyle);
+            int headerSize = mainHeaderSize + tableHeaderSize;
+            int lastRow = addTableData(accounts, sheet, cellStyle, headerSize);
+            printLastRow(workbook, sheet, lastRow);
 
 
             File currDir = new File(".");
             String path = currDir.getAbsolutePath();
-            String fileLocation = path.substring(0, path.length() - 1) + "график_поверки_" + measurementType + ".xlsx";
-            File exportFile = new File(fileLocation);
+            String fileName = path.substring(0, path.length() - 1) + "график_поверки_" + measurementType + ".xlsx";
+            File exportFile = new File(fileName);
             if (exportFile.exists()) {
                 exportFile.delete();
             }
 
-            FileOutputStream outputStream = new FileOutputStream(fileLocation);
+            FileOutputStream outputStream = new FileOutputStream(fileName);
             workbook.write(outputStream);
 
         } catch (Exception e) {
@@ -72,7 +63,7 @@ public class InspectionScheduleExporter {
         }
     }
 
-    private static void addMainHeader(Sheet sheet, Workbook workbook, String year, String measurementType) {
+    private static int addMainHeader(Sheet sheet, Workbook workbook, String year, String measurementType) {
         CellStyle TNR7 = workbook.createCellStyle();
         XSSFFont TNR7Font = (XSSFFont) workbook.createFont();
         TNR7Font.setFontName(TIMES_NEW_ROMAN_FONT);
@@ -116,7 +107,7 @@ public class InspectionScheduleExporter {
         TNR16Bold.setAlignment(HorizontalAlignment.CENTER);
         TNR16Bold.setFont(TNR16BoldFont);
 
-
+        int height = 0;
         Row row1 = sheet.createRow(0);
         Cell cellA1 = row1.createCell(0);
         cellA1.setCellStyle(TNR11);
@@ -124,6 +115,7 @@ public class InspectionScheduleExporter {
         Cell cellL1 = row1.createCell(11);
         cellL1.setCellStyle(TNR12Bold);
         cellL1.setCellValue("УТВЕРЖДАЮ");
+        height += row1.getHeight();
 
         Row row2 = sheet.createRow(1);
         Cell cellA2 = row2.createCell(0);
@@ -131,6 +123,7 @@ public class InspectionScheduleExporter {
         cellA2.setCellValue("наименование владельца средств измерения");
         Cell cellK2 = row2.createCell(10);
         cellK2.setCellStyle(TNR12);
+        height += row2.getHeight();
 
         sheet.addMergedRegion(CellRangeAddress.valueOf("K2:N2"));
         sheet.addMergedRegion(CellRangeAddress.valueOf("G4:J4"));
@@ -142,6 +135,7 @@ public class InspectionScheduleExporter {
 
         Row row3 = sheet.createRow(2);
         row3.setHeight((short) 146);
+        height += row3.getHeight();
 
         Row row4 = sheet.createRow(3);
         row4.setHeight((short) 407);
@@ -154,11 +148,13 @@ public class InspectionScheduleExporter {
         Cell cellM4 = row4.createCell(12);
         cellM4.setCellStyle(TNR12);
         cellM4.setCellValue("И.А.Капралова");
+        height += row4.getHeight();
 
         Row row5 = sheet.createRow(4);
         Cell cellG5 = row5.createCell(6);
         cellG5.setCellStyle(TNR14Bold);
         cellG5.setCellValue("поверки эталонов и СИ лаборатории");
+        height += row5.getHeight();
 
         CellStyle K5Style = workbook.createCellStyle();
         XSSFFont K5Font = (XSSFFont) workbook.createFont();
@@ -176,23 +172,32 @@ public class InspectionScheduleExporter {
         Cell cellF7 = row6.createCell(5);
         cellF7.setCellStyle(TNR12Bold);
         cellF7.setCellValue("на  " + year + "  год");
+        height += row6.getHeight();
 
         Row row7 = sheet.createRow(6);
         Cell cellA7 = row7.createCell(0);
         cellA7.setCellStyle(TNR12);
         cellA7.setCellValue("Вид измерений");
+        height += row7.getHeight();
 
         Row row8 = sheet.createRow(7);
         Cell cellA8 = row8.createCell(0);
         cellA8.setCellStyle(TNR12);
         cellA8.setCellValue(measurementType);
+        height += row8.getHeight();
 
         Row row9 = sheet.createRow(8);
         row9.setHeight((short) 146);
+        height += row9.getHeight();
 
+        return height;
     }
 
-    private static void addTableHeader(Sheet sheet, String[] headers, CellStyle cellStyle) {
+    private static int addTableHeader(Sheet sheet, String[] headers, CellStyle cellStyle, CellStyle borderStyle) {
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        cellStyle.setBorderTop(BorderStyle.THIN);
         Row tableHeaderRow = sheet.createRow(9);
         tableHeaderRow.setHeight((short) 487);
         Row tableHeaderNexRow = sheet.createRow(10);
@@ -247,19 +252,42 @@ public class InspectionScheduleExporter {
         cell11.setCellStyle(cellStyle);
         cell11.setCellValue(11);
 
+        Cell cellO10 = tableHeaderRow.createCell(14);
+        cellO10.setCellStyle(borderStyle);
+        Cell cellO11 = tableHeaderNexRow.createCell(14);
+        cellO11.setCellStyle(borderStyle);
+        Cell cellO12 = row12.createCell(14);
+        cellO12.setCellStyle(borderStyle);
+
+        return tableHeaderRow.getHeight() + tableHeaderNexRow.getHeight() + row12.getHeight();
     }
 
-    private static void addTableData(List<Device> devices, Sheet sheet, CellStyle cellStyle) {
+    private static int addTableData(List<Device> devices, Sheet sheet, CellStyle cellStyle, int headerSize) {
         Holder<Integer> rowNumber = new Holder<>(12);
         Holder<Integer> orderNumber = new Holder<>(1);
         for (Device device : devices) {
             Integer rownum = rowNumber.value++;
             Row accountRow = sheet.createRow(rownum);
+
+//            if (headerSize > 11900 && !isExtraHeader) {
+//                printExtraHeader(sheet, cellStyle, borderStyle, rownum, accountRow);
+//                isExtraHeader = true;
+//
+//                rownum = rowNumber.value++;
+//                accountRow = sheet.createRow(rownum);
+//            }
+//            if (headerSize > 11900 * 2) {
+//                printExtraHeader(sheet, cellStyle, borderStyle, rownum, accountRow);
+//                rownum = rowNumber.value++;
+//                accountRow = sheet.createRow(rownum);
+//            }
+
+            int heigntIndex = 1;
+            accountRow.setHeight((short) 410);
             Cell cell = accountRow.createCell(0);
             cellStyle.setAlignment(HorizontalAlignment.CENTER);
             cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-            cell.getRow()
-                    .setHeightInPoints(cell.getSheet().getDefaultRowHeightInPoints() * 2);
+            cell.getRow().setHeightInPoints(cell.getSheet().getDefaultRowHeightInPoints() * 2);
             cellStyle.setWrapText(true);
             cell.setCellStyle(cellStyle);
             cell.setCellValue(orderNumber.value++);
@@ -277,6 +305,12 @@ public class InspectionScheduleExporter {
                 name = "Динамометр";
             }
             name = name + " " + device.getType();
+            if (name.length() > 31) {
+                heigntIndex = 2;
+            }
+            if (name.length() > 62) {
+                heigntIndex = 3;
+            }
             cell.setCellValue(name);
             sheet.addMergedRegion(new CellRangeAddress(rowNumber.value - 1, rowNumber.value - 1, 2, 4));
             sheet.setColumnWidth(2, 2018);
@@ -291,7 +325,20 @@ public class InspectionScheduleExporter {
 
             cell = accountRow.createCell(5);
             cell.setCellStyle(cellStyle);
-            cell.setCellValue(device.getFactoryNumber());
+            String factoryNumber = device.getFactoryNumber();
+            if (factoryNumber.length() > 13 && heigntIndex < 2) {
+                heigntIndex = 2;
+            }
+            if (factoryNumber.length() > 26 && heigntIndex < 3) {
+                heigntIndex = 3;
+            }
+            if (factoryNumber.length() > 39) {
+                heigntIndex = 4;
+            }
+            if (factoryNumber.length() > 52) {
+                heigntIndex = 5;
+            }
+            cell.setCellValue(factoryNumber);
             sheet.setColumnWidth(5, 3144);
 
             Row preHeaderRow = sheet.getRow(9);
@@ -301,12 +348,20 @@ public class InspectionScheduleExporter {
 
             cell = accountRow.createCell(6);
             cell.setCellStyle(cellStyle);
-            cell.setCellValue(device.getRange());
+            String range = device.getRange();
+            if (range.length() > 21 && heigntIndex < 2) {
+                heigntIndex = 2;
+            }
+            cell.setCellValue(range);
             sheet.setColumnWidth(6, 4765);
 
             cell = accountRow.createCell(7);
             cell.setCellStyle(cellStyle);
-            cell.setCellValue(device.getCategory());
+            String category = device.getCategory();
+            if (category.length() > 22 && heigntIndex < 2) {
+                heigntIndex = 2;
+            }
+            cell.setCellValue(category);
             sheet.setColumnWidth(7, 4401);
 
             cell = accountRow.createCell(8);
@@ -326,6 +381,9 @@ public class InspectionScheduleExporter {
                 inspectionPlace = "ФБУ \"ЧЦСМ\"";
             } else if (inspectionPlace.contains("Менделеева")) {
                 inspectionPlace = "ВНИИМ им. Д.И.Менделеева";
+            }
+            if (inspectionPlace.length() > 14 && heigntIndex < 2) {
+                heigntIndex = 2;
             }
             cell.setCellValue(inspectionPlace);
             sheet.setColumnWidth(10, 4269);
@@ -347,7 +405,52 @@ public class InspectionScheduleExporter {
             cell.setCellStyle(cellStyle);
             sheet.setColumnWidth(13, 1721);
 
-            short pageStart = sheet.getPrintSetup().getPageStart();
+            accountRow.setHeight((short) (380 * heigntIndex));
+
+            headerSize += accountRow.getHeight();
         }
+        return sheet.getLastRowNum();
+    }
+
+    private static void printLastRow(Workbook workbook, Sheet sheet, int lastRow) {
+        CellStyle cellStyle = workbook.createCellStyle();
+        XSSFFont cellFont = (XSSFFont) workbook.createFont();
+        cellFont.setFontName(TIMES_NEW_ROMAN_FONT);
+        cellFont.setFontHeightInPoints(FONT_SIZE_12);
+        cellStyle.setFont(cellFont);
+
+        Row signatureRow = sheet.createRow(lastRow + 3);
+        Cell chiefCell = signatureRow.createCell(1);
+        chiefCell.setCellStyle(cellStyle);
+        chiefCell.setCellValue("Руководитель калибровочной лаборатории");
+
+        Cell signatureCell = signatureRow.createCell(7);
+        signatureCell.setCellStyle(cellStyle);
+        signatureCell.setCellValue("М.Д.Черникова");
+    }
+
+    private static void printExtraHeader(Sheet sheet, CellStyle cellStyle, CellStyle borderStyle,
+                                         Integer rownum, Row accountRow) {
+        for (int i = 0; i < 2; i++) {
+            Cell numberCell = accountRow.createCell(i);
+            numberCell.setCellStyle(cellStyle);
+            numberCell.setCellValue(i + 1);
+        }
+        for (int i = 3; i < 11; i++) {
+            Cell numberCell = accountRow.createCell(i + 2);
+            numberCell.setCellStyle(cellStyle);
+            numberCell.setCellValue(i + 1);
+        }
+        Cell cell3 = accountRow.createCell(2);
+        cell3.setCellStyle(cellStyle);
+        cell3.setCellValue(3);
+        String merge11 = "M" + (rownum + 1) + ":N" + (rownum + 1);
+        sheet.addMergedRegion(CellRangeAddress.valueOf(merge11));
+
+        String merge3 = "C" + (rownum + 1) + ":E" + (rownum + 1);
+        sheet.addMergedRegion(CellRangeAddress.valueOf(merge3));
+
+        Cell cellO12 = accountRow.createCell(14);
+        cellO12.setCellStyle(borderStyle);
     }
 }

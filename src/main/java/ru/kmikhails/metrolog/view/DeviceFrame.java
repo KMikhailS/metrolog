@@ -417,7 +417,7 @@ public class DeviceFrame extends JFrame {
             @Override
             public void keyTyped(KeyEvent e) {
                 char symbol = e.getKeyChar();
-                if (Character.isAlphabetic(symbol) || (symbol == KeyEvent.VK_BACK_SPACE)) {
+                if (!Character.isDigit(symbol) || (symbol == KeyEvent.VK_BACK_SPACE) || (symbol == KeyEvent.VK_SPACE)) {
                     e.consume();
                 }
             }
@@ -428,7 +428,7 @@ public class DeviceFrame extends JFrame {
         return new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                int frequency = Integer.parseInt(inspectionFrequencyTextField.getText());
+                int frequency = Integer.parseInt(inspectionFrequencyTextField.getText().trim());
                 if (frequency > 0) {
                     LocalDate lastDate = lastInspectionDatePicker.getDate();
                     if (lastDate != null) {

@@ -4,18 +4,18 @@ import ru.kmikhails.metrolog.domain.Device;
 import ru.kmikhails.metrolog.service.DeviceService;
 
 import javax.swing.table.AbstractTableModel;
-import javax.swing.text.DateFormatter;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class DeviceTableModel extends AbstractTableModel {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
-    private static final String STATE = "в поверке";
+    private static final String CHECK_STATE = "в поверке";
+    private static final String STORING_STATE = "дл. хранение";
+    private static final String DEFECT_STATE = "брак";
     private static final List<String> NON_HIGHLIGHT_STATE = Collections.singletonList("дл. хранение");
     private static final String[] TABLE_HEADERS = {
             "Наименование", "Тип", "Номер в реестре", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер", "Дата поверки"};
@@ -70,8 +70,12 @@ public class DeviceTableModel extends AbstractTableModel {
             case 5:
                 return device.getFactoryNumber();
             case 6:
-                if (STATE.equals(device.getRegularCondition().getRegularCondition())) {
-                    return STATE;
+                if (CHECK_STATE.equals(device.getRegularCondition().getRegularCondition())) {
+                    return CHECK_STATE;
+                } else if (STORING_STATE.equals(device.getRegularCondition().getRegularCondition())) {
+                    return STORING_STATE;
+                } else if (DEFECT_STATE.equals(device.getRegularCondition().getRegularCondition())) {
+                    return DEFECT_STATE;
                 }
                 return FORMATTER.format(device.getNextInspectionDate());
             default:
@@ -86,7 +90,7 @@ public class DeviceTableModel extends AbstractTableModel {
         long period = ChronoUnit.DAYS.between(now, nextInspectionDate);
         if (device.getRegularCondition() != null
                 && !NON_HIGHLIGHT_STATE.contains(device.getRegularCondition().getRegularCondition())) {
-            if (STATE.equals(device.getRegularCondition().getRegularCondition())) {
+            if (CHECK_STATE.equals(device.getRegularCondition().getRegularCondition())) {
                 return Color.GREEN;
             }
             if (period < 2) {
