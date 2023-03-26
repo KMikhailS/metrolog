@@ -32,6 +32,7 @@ public class ShortDeviceFrame extends JFrame {
     private JComboBox<InspectionPlace> inspectionPlaceComboBox;
     private JTextField inspectionProtocolNumberTextField;
     private JComboBox<InspectionType> inspectionTypeComboBox;
+    private JComboBox<RegularCondition> regularConditionTypeComboBox;
     private JButton saveButton;
     private JButton cancelButton;
 
@@ -42,13 +43,15 @@ public class ShortDeviceFrame extends JFrame {
 
     private final InspectionPlace[] inspectionPlaces;
     private final InspectionType[] inspectionTypes;
+    private final RegularCondition[] regularConditions;
 
     public ShortDeviceFrame(DeviceService deviceService, DeviceTableModel deviceTableModel,
-                            InspectionPlace[] inspectionPlaces, InspectionType[] inspectionTypes) {
+                            InspectionPlace[] inspectionPlaces, InspectionType[] inspectionTypes, RegularCondition[] regularConditions) {
         this.deviceTableModel = deviceTableModel;
         this.deviceService = deviceService;
         this.inspectionPlaces = inspectionPlaces;
         this.inspectionTypes = inspectionTypes;
+        this.regularConditions = regularConditions;
         init();
     }
 
@@ -60,7 +63,7 @@ public class ShortDeviceFrame extends JFrame {
         JOptionPane.setDefaultLocale(LOCALE);
         FormLayout layout = new FormLayout(
                 "pref,3dlu,pref,10dlu",
-                "p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,9dlu,p");
+                "p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,9dlu,p");
 
         PanelBuilder builder = new PanelBuilder(layout);
         builder.setDefaultDialogBorder();
@@ -120,6 +123,11 @@ public class ShortDeviceFrame extends JFrame {
         inspectionTypeComboBox.setFont(FONT);
         builder.add(inspectionTypeComboBox, cc.xyw(3, 13, 1));
 
+        builder.addLabel("Штатное состояние", cc.xy(1, 15));
+        regularConditionTypeComboBox = new JComboBox<>(regularConditions);
+        regularConditionTypeComboBox.setFont(FONT);
+        builder.add(regularConditionTypeComboBox, cc.xyw(3, 15, 1));
+
         saveButton = new JButton("Сохранить");
         saveButton.setFont(FONT);
         saveButton.addActionListener(e -> saveDevice());
@@ -128,10 +136,10 @@ public class ShortDeviceFrame extends JFrame {
         cancelButton.setFont(FONT);
         cancelButton.addActionListener(e -> this.dispose());
         builder.add(ButtonBarFactory.buildOKCancelBar(saveButton, cancelButton),
-                cc.xyw(1, 15, 3));
+                cc.xyw(1, 17, 3));
 
         this.add(builder.getPanel());
-        this.setSize(new Dimension(530, 320));
+        this.setSize(new Dimension(530, 350));
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     }
@@ -155,6 +163,10 @@ public class ShortDeviceFrame extends JFrame {
         inspectionType.setId(device.getInspectionType().getId());
         inspectionType.setInspectionType(device.getInspectionType().getInspectionType());
         inspectionTypeComboBox.setSelectedItem(inspectionType);
+        RegularCondition regularCondition = new RegularCondition();
+        regularCondition.setId(device.getRegularCondition().getId());
+        regularCondition.setRegularCondition(device.getRegularCondition().getRegularCondition());
+        regularConditionTypeComboBox.setSelectedItem(regularCondition);
     }
 
     private void saveDevice() {
@@ -183,12 +195,17 @@ public class ShortDeviceFrame extends JFrame {
             inspectionPlace.setInspectionPlace(((InspectionPlace) inspectionPlaceComboBox.getSelectedItem()).getInspectionPlace());
             device.setInspectionPlace(inspectionPlace);
         }
-
         if (inspectionTypeComboBox.getSelectedItem() != null) {
             InspectionType inspectionType = new InspectionType();
             inspectionType.setId(((InspectionType) inspectionTypeComboBox.getSelectedItem()).getId());
             inspectionType.setInspectionType(((InspectionType) inspectionTypeComboBox.getSelectedItem()).getInspectionType());
             device.setInspectionType(inspectionType);
+        }
+        if (regularConditionTypeComboBox.getSelectedItem() != null) {
+            RegularCondition regularCondition = new RegularCondition();
+            regularCondition.setId(((RegularCondition) regularConditionTypeComboBox.getSelectedItem()).getId());
+            regularCondition.setRegularCondition(((RegularCondition) regularConditionTypeComboBox.getSelectedItem()).getRegularCondition());
+            device.setRegularCondition(regularCondition);
         }
     }
 

@@ -8,6 +8,7 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class DeviceTableModel extends AbstractTableModel {
     private static final String CHECK_STATE = "в поверке";
     private static final String STORING_STATE = "дл. хранение";
     private static final String DEFECT_STATE = "брак";
-    private static final List<String> NON_HIGHLIGHT_STATE = Collections.singletonList("дл. хранение");
+    private static final List<String> NON_HIGHLIGHT_STATE = Arrays.asList("дл. хранение", "брак");
     private static final String[] TABLE_HEADERS = {
             "Наименование", "Тип", "Номер в реестре", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер", "Дата поверки"};
 

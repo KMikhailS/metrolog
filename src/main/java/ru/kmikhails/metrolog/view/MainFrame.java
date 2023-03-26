@@ -316,8 +316,9 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         if (shortDeviceFrame == null) {
             inspectionPlaces = inspectionPlaceService.findAll().toArray(new InspectionPlace[0]);
             inspectionTypes = inspectionTypeService.findAll().toArray(new InspectionType[0]);
+            regularConditions = regularConditionService.findAll().toArray(new RegularCondition[0]);
             shortDeviceFrame = new ShortDeviceFrame(deviceService, deviceTableModel,
-                    inspectionPlaces, inspectionTypes);
+                    inspectionPlaces, inspectionTypes, regularConditions);
         }
     }
 
