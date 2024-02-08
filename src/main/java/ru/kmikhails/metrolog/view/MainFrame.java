@@ -1,6 +1,7 @@
 package ru.kmikhails.metrolog.view;
 
 import ru.kmikhails.metrolog.domain.*;
+import ru.kmikhails.metrolog.exception.DeviceException;
 import ru.kmikhails.metrolog.service.*;
 import ru.kmikhails.metrolog.view.settings.dictionaries.DeviceLocationSettingsFrame;
 import ru.kmikhails.metrolog.view.settings.dictionaries.DeviceNameSettingsFrame;
@@ -10,10 +11,8 @@ import ru.kmikhails.metrolog.view.settings.dictionaries.MeasurementTypeSettingsF
 import ru.kmikhails.metrolog.view.settings.dictionaries.ReconfigureDeviceFrameListener;
 import ru.kmikhails.metrolog.view.settings.dictionaries.RegularConditionSettingsFrame;
 import ru.kmikhails.metrolog.view.settings.periods.WarnPeriodsFrame;
-import ru.kmikhails.metrolog.view.util.ChangeRowColorRenderer;
-import ru.kmikhails.metrolog.view.util.ExcelExporter;
-import ru.kmikhails.metrolog.view.util.InspectionScheduleExporter;
-import ru.kmikhails.metrolog.view.util.TableMouseListener;
+import ru.kmikhails.metrolog.view.settings.productiondate.ProductionDateFrame;
+import ru.kmikhails.metrolog.view.util.*;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -29,6 +28,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private static final List<String> NON_HIGHLIGHT_STATE = Collections.singletonList("дл. хранение");
     private static final String MENU = "Меню";
     private static final String ADD = "Добавить";
+    private static final String CUSTOM_ACTION = "Выполнить пользовательское действие";
     private static final String UPDATE = "Обновить";
     private static final String COPY = "Копировать";
     private static final String DELETE = "Удалить";
@@ -40,9 +40,11 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private static final String DEVICE_NAME = "Наименование СИ";
     private static final String DEVICE_LOCATION = "Место установки";
     private static final String WARN_PERIOD = "Срок предупреждения";
+    private static final String SET_PRODUCTION_DATE = "Задать дату изготовления";
     private static final String EXPORT = "Экспорт";
     private static final String EXPORT_EXCEL = "Экспорт приборов \"в поверку\"";
     private static final String INSPECTION_SCHEDULE = "График поверки";
+    private static final String SHOW_SCAN = "Показать скан";
 
     private DeviceTableModel deviceTableModel;
     private JTable table;
@@ -65,10 +67,12 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private final RegularConditionService regularConditionService;
     private final DeviceNameService deviceNameService;
     private final DeviceLocationService deviceLocationService;
+    private final CustomAction customAction;
 
     public MainFrame(DeviceService deviceService, InspectionPlaceService inspectionPlaceService,
                      InspectionTypeService inspectionTypeService, MeasurementTypeService measurementTypeService,
-                     RegularConditionService regularConditionService, DeviceNameService deviceNameService, DeviceLocationService deviceLocationService) {
+                     RegularConditionService regularConditionService, DeviceNameService deviceNameService,
+                     DeviceLocationService deviceLocationService, CustomAction customAction) {
         this.deviceService = deviceService;
         this.inspectionPlaceService = inspectionPlaceService;
         this.inspectionTypeService = inspectionTypeService;
@@ -76,6 +80,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         this.regularConditionService = regularConditionService;
         this.deviceNameService = deviceNameService;
         this.deviceLocationService = deviceLocationService;
+        this.customAction = customAction;
     }
 
     public void run() {
@@ -87,7 +92,8 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
 //        UIManager.put("OptionPane.okButtonText", "Готово");
             SwingUtilities.invokeLater(() ->
                     new MainFrame(deviceService, inspectionPlaceService, inspectionTypeService,
-                            measurementTypeService, regularConditionService, deviceNameService, deviceLocationService).init());
+                            measurementTypeService, regularConditionService, deviceNameService, deviceLocationService,
+                    customAction).init());
         } catch (Exception e) {
 //            LOG.error("Критическая ошибка отображения формы", e);
             JOptionPane.showMessageDialog(this, "Критическая ошибка отображения формы\nОбратитесь в поддержку",
@@ -114,11 +120,15 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         copyMenuItem.addActionListener(e -> copyDevice());
         JMenuItem deleteMenuItem = new JMenuItem(DELETE);
         deleteMenuItem.addActionListener(e -> deleteDevice());
+        JMenuItem showScanMenuItem = new JMenuItem(SHOW_SCAN);
+        showScanMenuItem.addActionListener(e -> showScan());
 
         popupMenu.add(addMenuItem);
         popupMenu.add(updateMenuItem);
         popupMenu.add(copyMenuItem);
         popupMenu.add(deleteMenuItem);
+        popupMenu.add(new JSeparator());
+        popupMenu.add(showScanMenuItem);
 
         table.setComponentPopupMenu(popupMenu);
     }
@@ -132,6 +142,9 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         JMenuItem addDeviceMenuItem = new JMenuItem(ADD);
         mainMenu.add(addDeviceMenuItem);
         addDeviceMenuItem.addActionListener(e -> addNewDevice());
+        JMenuItem customActionMenuItem = new JMenuItem(CUSTOM_ACTION);
+        mainMenu.add(customActionMenuItem);
+        customActionMenuItem.addActionListener(e -> processCustomAction());
 
         JMenu settingsMenu = new JMenu(SETTINGS);
         menuBar.add(settingsMenu);
@@ -157,7 +170,10 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
 //        JMenuItem warnPeriodsMenuItem = new JMenuItem(WARN_PERIOD);
 //        settingsMenu.add(warnPeriodsMenuItem);
 //        warnPeriodsMenuItem.addActionListener(e -> openWarnPeriodsSettings());
-
+        settingsMenu.add(new JSeparator());
+        JMenuItem setProductionDatesMenuItem = new JMenuItem(SET_PRODUCTION_DATE);
+        settingsMenu.add(setProductionDatesMenuItem);
+        setProductionDatesMenuItem.addActionListener(e -> openProductionDateSettings());
         JMenu exportMenu = new JMenu(EXPORT);
         menuBar.add(exportMenu);
 
@@ -171,6 +187,14 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
             JMenuItem jMenuItem = new JMenuItem(measurementType.getMeasurementType());
             inspectionScheduleMenuItem.add(jMenuItem);
             jMenuItem.addActionListener(e -> getInspectionSchedule(measurementType.getMeasurementType()));
+        }
+    }
+
+    private void processCustomAction() {
+        int option = JOptionPane.showConfirmDialog(this, "Вы уверены, что хотите выполнить пользовательское действие?\n",
+                "Пользовательское действие", JOptionPane.YES_NO_OPTION);
+        if (option == 0) {
+            customAction.processCustomAction();
         }
     }
 
@@ -228,6 +252,11 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
                 .sorted(Comparator.comparing(String::toUpperCase))
                 .collect(Collectors.toList());
         new WarnPeriodsFrame(deviceNames).init();
+    }
+
+    private void openProductionDateSettings() {
+        List<Device> deviceNames = deviceService.findAll();
+        new ProductionDateFrame(deviceService, deviceTableModel, deviceNames).init();
     }
 
     private void addNewDevice() {
@@ -378,5 +407,23 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
             return period < 14;
         }
         return false;
+    }
+
+    private void showScan() {
+        try {
+            Device device = findDeviceForRow();
+            String filename = device.getDeviceFile();
+            if (filename == null || filename.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "К этому прибору не приложен скан",
+                        "Внимание", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                PdfRunner pdfRunner = new PdfRunner();
+                pdfRunner.showScan(filename);
+            }
+        } catch (DeviceException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(),
+                    "Ошибка", JOptionPane.ERROR_MESSAGE);
+        }
+
     }
 }

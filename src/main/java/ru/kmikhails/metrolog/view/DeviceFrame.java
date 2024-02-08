@@ -42,6 +42,9 @@ public class DeviceFrame extends JFrame {
     private JComboBox<DeviceLocation> deviceLocationTypeComboBox;
     private JComboBox<RegularCondition> regularConditionTypeComboBox;
     private JComboBox<MeasurementType> measurementTypeComboBox;
+    private JFileChooser deviceFileChooser;
+    private JButton deviceChooserButton;
+    private JTextField deviceChooserTextField;
     private JButton saveButton;
     private JButton cancelButton;
 
@@ -86,7 +89,7 @@ public class DeviceFrame extends JFrame {
                 "pref,3dlu,pref,10dlu",
                 "p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p," +
                         "9dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p," +
-                        "9dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,9dlu,p");
+                        "9dlu,p,3dlu,p,3dlu,p,3dlu,p,3dlu,p,9dlu,p,9dlu,p");
 
 
         PanelBuilder builder = new PanelBuilder(layout);
@@ -203,6 +206,18 @@ public class DeviceFrame extends JFrame {
         measurementTypeComboBox.setFont(FONT);
         builder.add(measurementTypeComboBox, cc.xyw(3, 37, 1));
 
+        deviceChooserButton = new JButton("Открыть");
+        deviceChooserTextField = new JTextField();
+        deviceChooserTextField.setFont(FONT);
+        deviceFileChooser = new JFileChooser();
+        deviceChooserButton.addActionListener(e -> {
+            if (deviceFileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                deviceChooserTextField.setText(deviceFileChooser.getSelectedFile().getAbsolutePath());
+            }
+        });
+        builder.add(deviceChooserButton, cc.xy(1, 39));
+        builder.add(deviceChooserTextField, cc.xyw(3, 39, 1));
+
         saveButton = new JButton("Сохранить");
         saveButton.setFont(FONT);
         saveButton.addActionListener(e -> saveDevice());
@@ -213,10 +228,10 @@ public class DeviceFrame extends JFrame {
         cancelButton.addActionListener(e -> this.dispose());
 //        builder.add(cancelButton, cc.xyw(5, 35, 1));
         builder.add(ButtonBarFactory.buildOKCancelBar(saveButton, cancelButton),
-                cc.xyw(1, 39, 3));
+                cc.xyw(1, 41, 3));
 
         this.add(builder.getPanel());
-        this.setSize(new Dimension(700, 690));
+        this.setSize(new Dimension(700, 720));
 //        this.setResizable(false);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -241,6 +256,7 @@ public class DeviceFrame extends JFrame {
         measurementTypeComboBox.setSelectedIndex(-1);
         regularConditionTypeComboBox.setSelectedIndex(-1);
         responsibleTextField.setText("");
+        deviceChooserTextField.setText("");
         setVisible(true);
     }
 
@@ -249,7 +265,6 @@ public class DeviceFrame extends JFrame {
         fillForm(device);
         setVisible(true);
     }
-
 
     public void showCopyFrame(Device device) {
         setDeviceId(null);
@@ -292,6 +307,7 @@ public class DeviceFrame extends JFrame {
         measurementType.setMeasurementType(device.getMeasurementType().getMeasurementType());
         measurementTypeComboBox.setSelectedItem(measurementType);
         responsibleTextField.setText(device.getResponsible());
+        deviceChooserTextField.setText(device.getDeviceFile());
     }
 
     private void saveDevice() {
@@ -407,6 +423,7 @@ public class DeviceFrame extends JFrame {
         }
 
         device.setResponsible(responsibleTextField.getText());
+        device.setDeviceFile(deviceChooserTextField.getText());
 //        device.sethistory;
 
         return device;
@@ -432,7 +449,7 @@ public class DeviceFrame extends JFrame {
                 if (frequency > 0) {
                     LocalDate lastDate = lastInspectionDatePicker.getDate();
                     if (lastDate != null) {
-                        nextInspectionDatePicker.setDate(lastDate.plusMonths(frequency));
+                        nextInspectionDatePicker.setDate(lastDate.plusMonths(frequency).minusDays(1));
                     }
                 }
             }
@@ -455,7 +472,7 @@ public class DeviceFrame extends JFrame {
                     && !inspectionFrequencyTextField.getText().isEmpty()
                     && dateChangeEvent.getNewDate() != null) {
                 LocalDate localDate = dateChangeEvent.getNewDate().plusMonths(Long.parseLong(inspectionFrequencyTextField.getText()));
-                nextInspectionDatePicker.setDate(localDate);
+                nextInspectionDatePicker.setDate(localDate.minusDays(1));
             }
         };
     }

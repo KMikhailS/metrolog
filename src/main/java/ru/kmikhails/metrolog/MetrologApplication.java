@@ -3,6 +3,7 @@ package ru.kmikhails.metrolog;
 import ru.kmikhails.metrolog.repository.*;
 import ru.kmikhails.metrolog.service.*;
 import ru.kmikhails.metrolog.view.MainFrame;
+import ru.kmikhails.metrolog.view.util.CustomAction;
 
 public class MetrologApplication {
     public static void main(String[] args) {
@@ -21,9 +22,10 @@ public class MetrologApplication {
         DeviceNameService deviceNameService = new DeviceNameService(responsibleRepository);
         DeviceLocationRepository deviceLocationRepository = new DeviceLocationRepository(dataSource);
         DeviceLocationService deviceLocationService = new DeviceLocationService(deviceLocationRepository);
+        CustomAction customAction = new CustomAction(deviceService);
 
         MainFrame mainFrame = new MainFrame(deviceService, inspectionPlaceService, inspectionTypeService,
-                measurementTypeService, regularConditionService, deviceNameService, deviceLocationService);
+                measurementTypeService, regularConditionService, deviceNameService, deviceLocationService, customAction);
         mainFrame.run();
     }
 }

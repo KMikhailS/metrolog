@@ -22,6 +22,8 @@ public class Device {
    private MeasurementType measurementType;
    private String responsible;
    private String history;
+   private String deviceFile;
+   private LocalDate productionDate;
 
    public Long getId() {
       return id;
@@ -167,6 +169,22 @@ public class Device {
       this.history = history;
    }
 
+   public String getDeviceFile() {
+      return deviceFile;
+   }
+
+   public void setDeviceFile(String deviceFile) {
+      this.deviceFile = deviceFile;
+   }
+
+   public LocalDate getProductionDate() {
+      return productionDate;
+   }
+
+   public void setProductionDate(LocalDate productionDate) {
+      this.productionDate = productionDate;
+   }
+
    @Override
    public boolean equals(Object o) {
       if (this == o) return true;
@@ -190,21 +208,24 @@ public class Device {
               Objects.equals(regularCondition, device.regularCondition) &&
               Objects.equals(measurementType, device.measurementType) &&
               Objects.equals(responsible, device.responsible) &&
-              Objects.equals(history, device.history);
+              Objects.equals(history, device.history) &&
+              Objects.equals(deviceFile, device.deviceFile) &&
+              Objects.equals(productionDate, device.productionDate);
    }
 
    @Override
    public int hashCode() {
       return Objects.hash(id, name, regNumber, type, range, category, factoryNumber, lastInspectionDate,
               inspectionFrequency, inspectionPlace, inspectionProtocolNumber, inspectionType,
-              deviceLocation, regularCondition, measurementType, responsible, lastInspectionDate, history);
+              deviceLocation, regularCondition, measurementType, responsible, lastInspectionDate, history,
+              deviceFile, productionDate);
    }
 
    @Override
    public String toString() {
       return "Device{" +
               "id=" + id +
-              ", name='" + name + '\'' +
+              ", name=" + name +
               ", regNumber='" + regNumber + '\'' +
               ", type='" + type + '\'' +
               ", range='" + range + '\'' +
@@ -219,8 +240,10 @@ public class Device {
               ", deviceLocation=" + deviceLocation +
               ", regularCondition=" + regularCondition +
               ", measurementType=" + measurementType +
-              ", responsible=" + responsible +
+              ", responsible='" + responsible + '\'' +
               ", history='" + history + '\'' +
+              ", deviceFile='" + deviceFile + '\'' +
+              ", productionDate=" + productionDate +
               '}';
    }
 }

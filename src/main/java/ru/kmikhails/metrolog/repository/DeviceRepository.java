@@ -16,19 +16,19 @@ public class DeviceRepository  {
     private static final String SAVE_QUERY = "INSERT INTO devices (device_name_id, reg_number, type, range, category, factory_number, " +
             "last_inspection_date, next_inspection_date, inspection_frequency, inspection_place_id, " +
             "inspection_protocol_number, inspection_type_id, device_location_id, regular_condition_id, " +
-            "measurement_type_id, responsible, history) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "measurement_type_id, responsible, history, device_file) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE devices SET device_name_id = ?, reg_number = ?, type = ?, range = ?, " +
             "category = ?, factory_number = ?, last_inspection_date = ?, next_inspection_date = ?, inspection_frequency = ?, " +
             "inspection_place_id = ?, inspection_protocol_number = ?, inspection_type_id = ?, device_location_id = ?, " +
-            "regular_condition_id = ?, measurement_type_id = ?, responsible = ?, history = ? WHERE device_id = ?";
+            "regular_condition_id = ?, measurement_type_id = ?, responsible = ?, history = ?, device_file = ? WHERE device_id = ?";
     private static final String DELETE_BY_ID_QUERY = "DELETE FROM devices WHERE device_id = ?";
     private static final String SELECT_DEVICE_QUERY = "SELECT d.device_id, dn.device_name_id, d.device_name_id, dn.device_name, " +
             "d.reg_number, d.type, d.range, d.category, d.factory_number, d.last_inspection_date, d.next_inspection_date, " +
             "d.inspection_frequency, d.inspection_place_id, ip.inspection_place, d.inspection_protocol_number, " +
             "d.inspection_type_id, it.inspection_type, d.device_location_id, dl.device_location, d.regular_condition_id, " +
             "rc.regular_condition, d.measurement_type_id, mt.measurement_type, d.responsible, " +
-            "d.history " +
+            "d.history, d.device_file, d.production_date " +
             "FROM devices d " +
             "LEFT JOIN device_locations dl " +
             "ON d.device_location_id = dl.device_location_id " +
@@ -46,6 +46,8 @@ public class DeviceRepository  {
     private static final String FIND_BY_ID_QUERY = SELECT_DEVICE_QUERY + "WHERE d.device_id = ?";
     private static final String FIND_BY_NAME_AND_FACTORY_NUMBER_QUERY =
             SELECT_DEVICE_QUERY + "WHERE dn.device_name = ? AND d.factory_number = ?";
+    private static final String UPDATE_PRODUCTION_DATE_QUERY = "UPDATE devices SET production_date = ? WHERE device_id = ?";
+
 
     private final DataSource dataSource;
 
@@ -72,7 +74,25 @@ public class DeviceRepository  {
              final PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)) {
 
             insert(statement, device);
-            statement.setLong(18, device.getId());
+            statement.setLong(19, device.getId());
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+//         LOG.error(e);
+            throw new DataBaseException(e);
+        }
+    }
+
+    public void setUpdateProductionDate(Long deviceId, LocalDate productionDate) {
+        try (final Connection connection = dataSource.getConnection();
+             final PreparedStatement statement = connection.prepareStatement(UPDATE_PRODUCTION_DATE_QUERY)) {
+
+            if (productionDate != null) {
+                statement.setString(1, productionDate.toString());
+            } else {
+                statement.setString(1, null);
+            }
+            statement.setLong(2, deviceId);
             statement.executeUpdate();
 
         } catch (SQLException e) {
@@ -186,6 +206,7 @@ public class DeviceRepository  {
         }
         statement.setString(16, device.getResponsible());
         statement.setString(17, device.getHistory());
+        statement.setString(18, device.getDeviceFile());
     }
 
     private Device mapResultSetToEntity(ResultSet resultSet) throws SQLException {
@@ -228,6 +249,9 @@ public class DeviceRepository  {
         device.setMeasurementType(measurementType);
         device.setResponsible(resultSet.getString("responsible"));
         device.setHistory(resultSet.getString("history"));
+        device.setDeviceFile(resultSet.getString("device_file"));
+        device.setProductionDate(resultSet.getString("production_date") != null ?
+                LocalDate.parse(resultSet.getString("production_date")) : null);
 
         return device;
     }

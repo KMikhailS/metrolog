@@ -19,12 +19,13 @@ public class DeviceTableModel extends AbstractTableModel {
     private static final String DEFECT_STATE = "брак";
     private static final List<String> NON_HIGHLIGHT_STATE = Arrays.asList("дл. хранение", "брак");
     private static final String[] TABLE_HEADERS = {
-            "Наименование", "Тип", "Номер в реестре", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер", "Дата поверки"};
+            "Наименование", "Тип", "Номер в реестре", "Пределы(диапазон)", "Класс(разряд)", "Заводской номер",
+            "Дата поверки", "Дата изготовления"};
 
     private final String[] columnNames = TABLE_HEADERS;
 
     private final Class[] columnClass = new Class[]{
-            String.class, String.class, String.class, String.class, String.class, String.class, String.class};
+            String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class};
 
     private final DeviceService deviceService;
     private List<Device> devices;
@@ -79,6 +80,11 @@ public class DeviceTableModel extends AbstractTableModel {
                     return DEFECT_STATE;
                 }
                 return FORMATTER.format(device.getNextInspectionDate());
+            case 7:
+                if (device.getProductionDate() != null) {
+                    return FORMATTER.format(device.getProductionDate());
+                }
+                return "";
             default:
                 return null;
         }
@@ -114,7 +120,7 @@ public class DeviceTableModel extends AbstractTableModel {
         updateTableModel();
     }
 
-    private void updateTableModel() {
+    public void updateTableModel() {
         devices = deviceService.findAll();
         this.fireTableDataChanged();
     }

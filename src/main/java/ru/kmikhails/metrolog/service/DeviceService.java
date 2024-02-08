@@ -4,6 +4,7 @@ import ru.kmikhails.metrolog.domain.Device;
 import ru.kmikhails.metrolog.exception.DeviceException;
 import ru.kmikhails.metrolog.repository.DeviceRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,10 @@ public class DeviceService {
 
     public void update(Device device) {
         deviceRepository.update(device);
+    }
+
+    public void updateProductionDate(Long deviceId, LocalDate productionDate) {
+        deviceRepository.setUpdateProductionDate(deviceId, productionDate);
     }
 
     public void deleteById(Long id) {
