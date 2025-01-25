@@ -23,9 +23,11 @@ public class MetrologApplication {
         DeviceLocationRepository deviceLocationRepository = new DeviceLocationRepository(dataSource);
         DeviceLocationService deviceLocationService = new DeviceLocationService(deviceLocationRepository);
         CustomAction customAction = new CustomAction(deviceService);
+        SettingRepository settingRepository = new SettingRepository(dataSource);
 
         MainFrame mainFrame = new MainFrame(deviceService, inspectionPlaceService, inspectionTypeService,
-                measurementTypeService, regularConditionService, deviceNameService, deviceLocationService, customAction);
+                measurementTypeService, regularConditionService, deviceNameService, deviceLocationService,
+                customAction, settingRepository);
         mainFrame.run();
     }
 }

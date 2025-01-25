@@ -1,7 +1,11 @@
 package ru.kmikhails.metrolog.view;
 
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import ru.kmikhails.metrolog.domain.*;
 import ru.kmikhails.metrolog.exception.DeviceException;
+import ru.kmikhails.metrolog.repository.SettingRepository;
 import ru.kmikhails.metrolog.service.*;
 import ru.kmikhails.metrolog.view.settings.dictionaries.DeviceLocationSettingsFrame;
 import ru.kmikhails.metrolog.view.settings.dictionaries.DeviceNameSettingsFrame;
@@ -10,6 +14,8 @@ import ru.kmikhails.metrolog.view.settings.dictionaries.InspectionTypeSettingsFr
 import ru.kmikhails.metrolog.view.settings.dictionaries.MeasurementTypeSettingsFrame;
 import ru.kmikhails.metrolog.view.settings.dictionaries.ReconfigureDeviceFrameListener;
 import ru.kmikhails.metrolog.view.settings.dictionaries.RegularConditionSettingsFrame;
+import ru.kmikhails.metrolog.view.settings.documents.SettingsFrame;
+import ru.kmikhails.metrolog.view.settings.documents.UpdateSettingsListener;
 import ru.kmikhails.metrolog.view.settings.periods.WarnPeriodsFrame;
 import ru.kmikhails.metrolog.view.settings.productiondate.ProductionDateFrame;
 import ru.kmikhails.metrolog.view.util.*;
@@ -24,7 +30,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener {
+public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener, UpdateSettingsListener {
     private static final List<String> NON_HIGHLIGHT_STATE = Collections.singletonList("дл. хранение");
     private static final String MENU = "Меню";
     private static final String ADD = "Добавить";
@@ -33,6 +39,7 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private static final String COPY = "Копировать";
     private static final String DELETE = "Удалить";
     private static final String SETTINGS = "Настройки";
+    private static final String MAIN_SETTINGS = "Настройки";
     private static final String INSPECTION_PLACE = "Место проведения поверки";
     private static final String INSPECTION_TYPE = "Тип МК";
     private static final String MEASUREMENT_TYPE = "Тип измерения";
@@ -60,6 +67,8 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private RegularCondition[] regularConditions;
     private DeviceName[] deviceNames;
 
+    private List<Setting> settings;
+
     private final DeviceService deviceService;
     private final InspectionPlaceService inspectionPlaceService;
     private final InspectionTypeService inspectionTypeService;
@@ -68,11 +77,13 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     private final DeviceNameService deviceNameService;
     private final DeviceLocationService deviceLocationService;
     private final CustomAction customAction;
+    private final SettingRepository settingRepository;
 
     public MainFrame(DeviceService deviceService, InspectionPlaceService inspectionPlaceService,
                      InspectionTypeService inspectionTypeService, MeasurementTypeService measurementTypeService,
                      RegularConditionService regularConditionService, DeviceNameService deviceNameService,
-                     DeviceLocationService deviceLocationService, CustomAction customAction) {
+                     DeviceLocationService deviceLocationService, CustomAction customAction,
+                     SettingRepository settingRepository) {
         this.deviceService = deviceService;
         this.inspectionPlaceService = inspectionPlaceService;
         this.inspectionTypeService = inspectionTypeService;
@@ -81,19 +92,26 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         this.deviceNameService = deviceNameService;
         this.deviceLocationService = deviceLocationService;
         this.customAction = customAction;
+        this.settingRepository = settingRepository;
     }
 
     public void run() {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            FlatRobotoFont.install();
+            FlatLaf.registerCustomDefaultsSource("themes");
+            FlatMacLightLaf.setup();
+            UIManager.put("defaultFont", new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
+//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             UIManager.put("OptionPane.yesButtonText", "Да");
             UIManager.put("OptionPane.noButtonText", "Нет");
             UIManager.put("OptionPane.cancelButtonText", "Отмена");
-//        UIManager.put("OptionPane.okButtonText", "Готово");
+            UIManager.put("OptionPane.okButtonText", "Готово");
             SwingUtilities.invokeLater(() ->
                     new MainFrame(deviceService, inspectionPlaceService, inspectionTypeService,
                             measurementTypeService, regularConditionService, deviceNameService, deviceLocationService,
-                    customAction).init());
+                    customAction, settingRepository).init());
+
+//            EventQueue.invokeLater(() -> new LoginFrame().setVisible(true));
         } catch (Exception e) {
 //            LOG.error("Критическая ошибка отображения формы", e);
             JOptionPane.showMessageDialog(this, "Критическая ошибка отображения формы\nОбратитесь в поддержку",
@@ -103,7 +121,8 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
     }
 
     private void init() {
-        configureTableModel();
+        readSettings();
+        configureTableModels();
         configureTable();
         configureMenu();
         configurePopupMenu();
@@ -142,9 +161,12 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         JMenuItem addDeviceMenuItem = new JMenuItem(ADD);
         mainMenu.add(addDeviceMenuItem);
         addDeviceMenuItem.addActionListener(e -> addNewDevice());
-        JMenuItem customActionMenuItem = new JMenuItem(CUSTOM_ACTION);
-        mainMenu.add(customActionMenuItem);
-        customActionMenuItem.addActionListener(e -> processCustomAction());
+//        JMenuItem customActionMenuItem = new JMenuItem(CUSTOM_ACTION);
+//        mainMenu.add(customActionMenuItem);
+//        customActionMenuItem.addActionListener(e -> processCustomAction());
+        JMenuItem settingsDocumentsMenuItem = new JMenuItem(MAIN_SETTINGS);
+        mainMenu.add(settingsDocumentsMenuItem);
+        settingsDocumentsMenuItem.addActionListener(e -> openMainSettings());
 
         JMenu settingsMenu = new JMenu(SETTINGS);
         menuBar.add(settingsMenu);
@@ -289,6 +311,10 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         }
     }
 
+    private void openMainSettings() {
+        new SettingsFrame(settingRepository, this).init();
+    }
+
     private Device findDeviceForRow() {
         int rowNumber = table.getSelectedRow();
         String name = ((String) table.getValueAt(rowNumber, 0));
@@ -364,11 +390,21 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
         sorter.sort();
     }
 
-    private List<Device> configureTableModel() {
+    private void readSettings() {
+        settings = settingRepository.findAll();
+    }
+
+    private String findSettingValue(String type) {
+        return settings.stream()
+                .filter(setting -> type.equals(setting.getType()))
+                .findFirst()
+                .map(Setting::getValue)
+                .orElse(null);
+    }
+
+    private void configureTableModels() {
         List<Device> devices = deviceService.findAll();
         deviceTableModel = new DeviceTableModel(deviceService, devices);
-
-        return devices;
     }
 
     @Override
@@ -388,14 +424,15 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
 
     private void getInspectionSchedule(String measurementType) {
         SwingUtilities.invokeLater(() -> {
-            String year = "2023";
+            String year = findSettingValue("YEAR");
+            String headLabName = findSettingValue("NAME");
             List<Device> accounts = deviceService.findAll();
             List<Device> deviceList = accounts.stream()
                     .filter(device -> measurementType.equals(device.getMeasurementType().getMeasurementType()))
                     .filter(device -> !"дл. хранение".equals(device.getRegularCondition().getRegularCondition()))
                     .filter(device -> device.getNextInspectionDate().getYear() == Integer.parseInt(year))
                     .collect(Collectors.toList());
-            InspectionScheduleExporter.export(deviceList, year, measurementType);
+            InspectionScheduleExporter.export(deviceList, year, headLabName, measurementType);
         });
     }
 
@@ -425,5 +462,10 @@ public class MainFrame extends JFrame implements ReconfigureDeviceFrameListener 
                     "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
 
+    }
+
+    @Override
+    public void updateValue(List<Setting> settings) {
+        this.settings = settings;
     }
 }

@@ -1,0 +1,5 @@
+CREATE TABLE settings (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+type VARCHAR(50),
+description VARCHAR(255),
+settings_value VARCHAR(255));

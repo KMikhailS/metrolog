@@ -23,7 +23,7 @@ public class InspectionScheduleExporter {
     private static final String TIMES_NEW_ROMAN_FONT = "Times New Roman";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    public static void export(List<Device> accounts, String year, String measurementType) {
+    public static void export(List<Device> accounts, String year, String headLabName, String measurementType) {
         String[] headers = ("№№ пп;Номер в Г/р СИ;Наименование и тип СИ;Идентификационный номер СИ;" +
                 "предел (диапазон измерений);класс точности, погрешность;Периодичность поверки, мес.;" +
                 "Дата последней поверки;Место проведения поверки;Сроки проведения поверки;Отметка о выполнении(дата поверки)").split(";");
@@ -44,12 +44,12 @@ public class InspectionScheduleExporter {
             int tableHeaderSize = addTableHeader(sheet, headers, cellStyle, borderStyle);
             int headerSize = mainHeaderSize + tableHeaderSize;
             int lastRow = addTableData(accounts, sheet, cellStyle, headerSize);
-            printLastRow(workbook, sheet, lastRow);
+            printLastRow(workbook, sheet, lastRow, headLabName);
 
 
             File currDir = new File(".");
             String path = currDir.getAbsolutePath();
-            String fileName = path.substring(0, path.length() - 1) + "график_поверки_" + measurementType + ".xlsx";
+            String fileName = path.substring(0, path.length() - 1) + "график_поверки_" + measurementType + "_" + year + ".xlsx";
             File exportFile = new File(fileName);
             if (exportFile.exists()) {
                 exportFile.delete();
@@ -412,7 +412,7 @@ public class InspectionScheduleExporter {
         return sheet.getLastRowNum();
     }
 
-    private static void printLastRow(Workbook workbook, Sheet sheet, int lastRow) {
+    private static void printLastRow(Workbook workbook, Sheet sheet, int lastRow, String headLabName) {
         CellStyle cellStyle = workbook.createCellStyle();
         XSSFFont cellFont = (XSSFFont) workbook.createFont();
         cellFont.setFontName(TIMES_NEW_ROMAN_FONT);
@@ -426,7 +426,7 @@ public class InspectionScheduleExporter {
 
         Cell signatureCell = signatureRow.createCell(7);
         signatureCell.setCellStyle(cellStyle);
-        signatureCell.setCellValue("М.Д.Черникова");
+        signatureCell.setCellValue(headLabName);
     }
 
     private static void printExtraHeader(Sheet sheet, CellStyle cellStyle, CellStyle borderStyle,
